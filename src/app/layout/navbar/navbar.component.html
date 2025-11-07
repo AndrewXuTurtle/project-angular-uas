@@ -1,0 +1,67 @@
+<mat-toolbar color="primary" class="navbar">
+  <div class="navbar-container">
+    <!-- Menu Toggle Button -->
+    <button 
+      mat-icon-button 
+      (click)="onToggleSidebar()"
+      class="menu-toggle"
+      aria-label="Toggle sidebar">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- Logo & Title -->
+    <div class="logo-section">
+      <mat-icon class="logo-icon">dashboard</mat-icon>
+      <span class="app-title">Admin Dashboard</span>
+    </div>
+
+    <!-- Spacer -->
+    <span class="spacer"></span>
+
+    <!-- Right Side Actions -->
+    <div class="navbar-actions">
+      <!-- Notifications -->
+      <button 
+        mat-icon-button 
+        aria-label="Notifications"
+        [matBadge]="3"
+        matBadgeColor="warn"
+        matBadgeSize="small">
+        <mat-icon>notifications</mat-icon>
+      </button>
+
+      <!-- User Menu -->
+      <button 
+        mat-button 
+        [matMenuTriggerFor]="userMenu"
+        class="user-button">
+        <mat-icon class="user-icon">account_circle</mat-icon>
+        <span class="user-name">{{ currentUser?.full_name || 'User' }}</span>
+        <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before">
+        <div class="user-menu-header">
+          <div class="user-info">
+            <p class="user-full-name">{{ currentUser?.full_name }}</p>
+            <p class="user-email">{{ currentUser?.email }}</p>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="goToProfile()">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+</mat-toolbar>

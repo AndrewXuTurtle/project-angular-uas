@@ -1,0 +1,42 @@
+<div class="sidebar-content">
+  <mat-nav-list class="menu-list">
+    <ng-container *ngFor="let menu of menus">
+      <ng-container *ngTemplateOutlet="menuTemplate; context: { $implicit: menu, level: 0 }"></ng-container>
+    </ng-container>
+  </mat-nav-list>
+</div>
+
+<!-- Recursive Menu Template -->
+<ng-template #menuTemplate let-menu let-level="level">
+  <!-- Menu tanpa children -->
+  <a 
+    *ngIf="!hasChildren(menu) && menu.url_link && menu.url_link !== '#'"
+    mat-list-item 
+    [routerLink]="menu.url_link"
+    routerLinkActive="active-link"
+    class="menu-item"
+    [style.padding-left.px]="16 + (level * 16)">
+    <mat-icon matListItemIcon>{{ getMenuIcon(menu) }}</mat-icon>
+    <span matListItemTitle>{{ menu.nama_menu }}</span>
+  </a>
+
+  <!-- Menu dengan children (nested) -->
+  <mat-expansion-panel 
+    *ngIf="hasChildren(menu)"
+    class="menu-expansion"
+    [class.has-active-child]="hasActiveChild(menu)"
+    [style.margin-left.px]="level * 16">
+    <mat-expansion-panel-header class="menu-header">
+      <mat-panel-title class="menu-title">
+        <mat-icon class="menu-icon">{{ getMenuIcon(menu) }}</mat-icon>
+        <span>{{ menu.nama_menu }}</span>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <mat-nav-list class="submenu-list">
+      <ng-container *ngFor="let child of menu.children">
+        <ng-container *ngTemplateOutlet="menuTemplate; context: { $implicit: child, level: level + 1 }"></ng-container>
+      </ng-container>
+    </mat-nav-list>
+  </mat-expansion-panel>
+</ng-template>

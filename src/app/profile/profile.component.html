@@ -1,0 +1,219 @@
+<div class="profile-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Profile</h1>
+      <p class="page-subtitle">Manage your account settings and security</p>
+    </div>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="profile-card-wrapper">
+    <mat-card class="profile-card">
+      <mat-card-content>
+        <div class="profile-avatar">
+          <div class="avatar-circle">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="profile-info">
+            <h2>{{ currentUser?.username || 'User' }}</h2>
+            <p class="user-level">{{ currentUser?.level || 'N/A' }}</p>
+            <p class="user-status" *ngIf="currentUser?.is_active">
+              <mat-icon>check_circle</mat-icon>
+              Active Account
+            </p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group>
+    <!-- Profile Information Tab -->
+    <mat-tab label="Profile Information">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>person</mat-icon>
+              Account Information
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="profileForm" class="profile-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username">
+                <mat-icon matPrefix>account_circle</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Level</mat-label>
+                <input matInput formControlName="level">
+                <mat-icon matPrefix>security</mat-icon>
+              </mat-form-field>
+
+              <div class="info-message">
+                <mat-icon>info</mat-icon>
+                <p>Username and level cannot be changed. Contact administrator if you need to update these fields.</p>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Change Password Tab -->
+    <mat-tab label="Change Password">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>lock</mat-icon>
+              Change Password
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="passwordForm" class="profile-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideOldPassword ? 'password' : 'text'"
+                  formControlName="oldPassword"
+                  placeholder="Enter current password">
+                <mat-icon matPrefix>lock</mat-icon>
+                <button 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="hideOldPassword = !hideOldPassword"
+                  type="button">
+                  <mat-icon>{{hideOldPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error *ngIf="passwordForm.get('oldPassword')?.hasError('required')">
+                  Current password is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>New Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideNewPassword ? 'password' : 'text'"
+                  formControlName="newPassword"
+                  placeholder="Enter new password">
+                <mat-icon matPrefix>lock_open</mat-icon>
+                <button 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="hideNewPassword = !hideNewPassword"
+                  type="button">
+                  <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+                  New password is required
+                </mat-error>
+                <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
+                  Password must be at least 8 characters
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirm New Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideConfirmPassword ? 'password' : 'text'"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm new password">
+                <mat-icon matPrefix>lock_open</mat-icon>
+                <button 
+                  mat-icon-button 
+                  matSuffix 
+                  (click)="hideConfirmPassword = !hideConfirmPassword"
+                  type="button">
+                  <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+                  Please confirm your new password
+                </mat-error>
+                <mat-error *ngIf="passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched">
+                  Passwords do not match
+                </mat-error>
+              </mat-form-field>
+
+              <div class="password-requirements">
+                <h4>Password Requirements:</h4>
+                <ul>
+                  <li>
+                    <mat-icon [class.valid]="passwordForm.get('newPassword')?.value?.length >= 8">
+                      {{ passwordForm.get('newPassword')?.value?.length >= 8 ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                    At least 8 characters long
+                  </li>
+                  <li>
+                    <mat-icon class="info">info</mat-icon>
+                    Mix of uppercase and lowercase letters recommended
+                  </li>
+                  <li>
+                    <mat-icon class="info">info</mat-icon>
+                    Include numbers and special characters recommended
+                  </li>
+                </ul>
+              </div>
+            </form>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="changePassword()" 
+              [disabled]="!passwordForm.valid">
+              <mat-icon>save</mat-icon>
+              Change Password
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Account Activity Tab -->
+    <mat-tab label="Activity">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>history</mat-icon>
+              Recent Activity
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="activity-list">
+              <div class="activity-item">
+                <mat-icon>login</mat-icon>
+                <div class="activity-details">
+                  <p class="activity-title">Logged in</p>
+                  <p class="activity-time">Today at 10:30 AM</p>
+                </div>
+              </div>
+              <div class="activity-item">
+                <mat-icon>edit</mat-icon>
+                <div class="activity-details">
+                  <p class="activity-title">Profile updated</p>
+                  <p class="activity-time">Yesterday at 3:45 PM</p>
+                </div>
+              </div>
+              <div class="activity-item">
+                <mat-icon>lock</mat-icon>
+                <div class="activity-details">
+                  <p class="activity-title">Password changed</p>
+                  <p class="activity-time">3 days ago</p>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

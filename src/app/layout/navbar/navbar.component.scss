@@ -1,0 +1,96 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 8px;
+}
+
+.menu-toggle {
+  margin-right: 8px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .logo-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .app-title {
+    font-size: 20px;
+    font-weight: 500;
+    
+    @media (max-width: 600px) {
+      display: none;
+    }
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .user-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .user-name {
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+  
+  .dropdown-icon {
+    margin-left: -4px;
+  }
+}
+
+.user-menu-header {
+  padding: 16px;
+  background-color: #f5f5f5;
+  
+  .user-info {
+    .user-full-name {
+      margin: 0 0 4px 0;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .user-email {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+::ng-deep .mat-mdc-menu-panel {
+  min-width: 250px;
+}

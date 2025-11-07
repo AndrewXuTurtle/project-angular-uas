@@ -1,0 +1,160 @@
+.sidebar-content {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.menu-list {
+  padding: 8px 0;
+}
+
+.menu-item {
+  margin: 4px 8px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+  
+  &.active-link {
+    background-color: rgba(63, 81, 181, 0.1);
+    color: #3f51b5;
+    
+    mat-icon {
+      color: #3f51b5;
+    }
+  }
+  
+  mat-icon {
+    margin-right: 16px;
+  }
+}
+
+.menu-expansion {
+  box-shadow: none !important;
+  margin: 4px 8px;
+  border-radius: 8px !important;
+  background: transparent;
+  
+  &::before {
+    box-shadow: none !important;
+  }
+  
+  &.has-active-child {
+    .menu-header {
+      background-color: rgba(63, 81, 181, 0.05);
+      
+      .menu-title {
+        color: #3f51b5;
+        font-weight: 500;
+        
+        .menu-icon {
+          color: #3f51b5;
+        }
+      }
+    }
+  }
+  
+  // Nested expansion panels
+  .menu-expansion {
+    margin: 4px 0;
+    
+    .menu-header {
+      padding: 0 8px;
+    }
+  }
+}
+
+.menu-header {
+  padding: 0 16px;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.menu-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  
+  .menu-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.submenu-list {
+  padding: 0 0 8px 0;
+  
+  .submenu-item {
+    margin: 2px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+    
+    &.active-link {
+      background-color: rgba(63, 81, 181, 0.1);
+      color: #3f51b5;
+      font-weight: 500;
+      
+      mat-icon {
+        color: #3f51b5;
+      }
+    }
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-right: 16px;
+    }
+  }
+  
+  // Nested submenu lists
+  .submenu-list {
+    padding: 0;
+    
+    .menu-item {
+      font-size: 13px;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// Custom scrollbar
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Override Material expansion panel styles
+::ng-deep {
+  .menu-expansion {
+    .mat-expansion-panel-body {
+      padding: 0 !important;
+    }
+  }
+}
