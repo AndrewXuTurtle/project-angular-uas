@@ -14,8 +14,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
-import { UserFormDialogComponent } from './user-form-dialog.component';
 import { AuthService } from '../auth/auth.service';
+import { UserFormDialogComponent } from './user-form-dialog.component';
 
 @Component({
   selector: 'app-users',
@@ -42,7 +42,9 @@ export class UsersComponent implements OnInit {
   displayedColumns: string[] = ['id', 'username', 'level', 'is_active', 'actions'];
   dataSource: MatTableDataSource<User>;
   loading = false;
-  permissions: { [key: number]: { c: boolean, r: boolean, u: boolean, d: boolean } } = {};
+  
+  // Menu ID untuk Users (sesuai dengan database)
+  private readonly USERS_MENU_ID = 5;
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -57,7 +59,6 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadPrivileges();
     this.loadUsers();
   }
 
@@ -80,35 +81,6 @@ export class UsersComponent implements OnInit {
         console.error('Error loading users:', error);
         this.showSnackBar('Error loading users: ' + (error.error?.message || error.message), 'error');
         this.loading = false;
-      }
-    });
-  }
-
-  loadPrivileges(): void {
-    this.authService.getUserPrivileges().subscribe({
-      next: (data: any) => {
-        // Find users menu permissions
-        const usersMenu = data.menus.find((menu: any) => menu.nama_menu.toLowerCase().includes('users') || menu.nama_menu.toLowerCase().includes('user'));
-        if (usersMenu) {
-          this.permissions[1] = {
-            c: usersMenu.permissions?.c || false,
-            r: usersMenu.permissions?.r || true,
-            u: usersMenu.permissions?.u || false,
-            d: usersMenu.permissions?.d || false
-          };
-        } else {
-          // Fallback: admin full access, user read only
-          this.permissions[1] = this.authService.isAdmin() 
-            ? { c: true, r: true, u: true, d: true }
-            : { c: false, r: true, u: false, d: false };
-        }
-      },
-      error: (error: any) => {
-        console.error('Error loading privileges:', error);
-        // Fallback
-        this.permissions[1] = this.authService.isAdmin() 
-          ? { c: true, r: true, u: true, d: true }
-          : { c: false, r: true, u: false, d: false };
       }
     });
   }
@@ -165,7 +137,7 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Are you sure you want to delete user "${user.full_name}"?`)) {
+    if (confirm(`Are you sure you want to delete user "${user.username}"?`)) {
       if (user.id) {
         this.userService.deleteUser(user.id).subscribe({
           next: () => {
@@ -180,16 +152,17 @@ export class UsersComponent implements OnInit {
     }
   }
 
+  // Permission check methods
   canCreate(): boolean {
-    return this.permissions[1]?.c || this.authService.isAdmin(); // Assuming menu id 1 for users
+    return this.authService.canCreate(this.USERS_MENU_ID);
   }
 
   canUpdate(): boolean {
-    return this.permissions[1]?.u || this.authService.isAdmin();
+    return this.authService.canUpdate(this.USERS_MENU_ID);
   }
 
   canDelete(): boolean {
-    return this.permissions[1]?.d || this.authService.isAdmin();
+    return this.authService.canDelete(this.USERS_MENU_ID);
   }
 
   private showSnackBar(message: string, type: 'success' | 'error'): void {

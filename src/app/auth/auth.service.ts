@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { User, LoginRequest, LoginResponse } from '../models/user.model';
+import { User, LoginRequest, LoginResponse, UserPrivileges, ApiResponse, MenuPermission } from '../models/user.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -12,6 +12,12 @@ import { environment } from '../../environments/environment';
 export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
+  
+  private userPrivilegesSubject: BehaviorSubject<UserPrivileges | null>;
+  public userPrivileges: Observable<UserPrivileges | null>;
+  
+  private permissionsMap: Map<number, MenuPermission> = new Map();
+  
   private apiUrl = environment.apiUrl;
 
   constructor(
@@ -21,6 +27,9 @@ export class AuthService {
     this.loadUserFromStorage();
     this.currentUserSubject = new BehaviorSubject<User | null>(null);
     this.currentUser = this.currentUserSubject.asObservable();
+    
+    this.userPrivilegesSubject = new BehaviorSubject<UserPrivileges | null>(null);
+    this.userPrivileges = this.userPrivilegesSubject.asObservable();
   }
 
   /**
@@ -74,6 +83,7 @@ export class AuthService {
         // Hapus dari localStorage
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('business_unit');
         
         // Update subject
         this.currentUserSubject.next(null);
@@ -115,9 +125,85 @@ export class AuthService {
   }
 
   /**
-   * Get user privileges and menus for sidebar
+   * Get user privileges and business unit from API
+   * This will be used to build sidebar and check permissions
    */
-  getUserPrivileges(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/user/privileges`);
+  getUserPrivileges(): Observable<ApiResponse<UserPrivileges>> {
+    return this.http.get<ApiResponse<UserPrivileges>>(
+      `${this.apiUrl}/user/privileges`
+    ).pipe(
+      tap(response => {
+        if (response.success) {
+          this.userPrivilegesSubject.next(response.data);
+          
+          // Build permissions map for quick access
+          this.permissionsMap.clear();
+          response.data.menus.forEach(menu => {
+            this.permissionsMap.set(menu.id, menu.permissions);
+          });
+        }
+      })
+    );
+  }
+
+  /**
+   * Check if user has permission for specific menu
+   */
+  hasPermission(menuId: number, permission: 'c' | 'r' | 'u' | 'd'): boolean {
+    const menuPermissions = this.permissionsMap.get(menuId);
+    if (!menuPermissions) return false;
+    return menuPermissions[permission];
+  }
+
+  /**
+   * Check if user can create on specific menu
+   */
+  canCreate(menuId: number): boolean {
+    return this.hasPermission(menuId, 'c');
+  }
+
+  /**
+   * Check if user can read/view on specific menu
+   */
+  canRead(menuId: number): boolean {
+    return this.hasPermission(menuId, 'r');
+  }
+
+  /**
+   * Check if user can update on specific menu
+   */
+  canUpdate(menuId: number): boolean {
+    return this.hasPermission(menuId, 'u');
+  }
+
+  /**
+   * Check if user can delete on specific menu
+   */
+  canDelete(menuId: number): boolean {
+    return this.hasPermission(menuId, 'd');
+  }
+
+  /**
+   * Get current business unit from localStorage
+   */
+  getCurrentBusinessUnit() {
+    try {
+      const buStr = localStorage.getItem('business_unit');
+      if (buStr) {
+        return JSON.parse(buStr);
+      }
+    } catch (error) {
+      console.error('Error loading business unit from storage:', error);
+    }
+    return null;
+  }
+
+  /**
+   * Switch business unit (requires re-authentication with new BU)
+   */
+  switchBusinessUnit(businessUnitId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/switch-business-unit`, {
+      business_unit_id: businessUnitId
+    });
   }
 }

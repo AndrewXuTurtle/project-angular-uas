@@ -11,9 +11,39 @@ export interface User {
   updated_at?: Date;
 }
 
+export interface BusinessUnit {
+  id: number;
+  business_unit: string;
+  user_id?: number;
+  active: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface MenuPermission {
+  c: boolean; // Create
+  r: boolean; // Read
+  u: boolean; // Update
+  d: boolean; // Delete
+}
+
+export interface UserPrivileges {
+  user: User;
+  business_unit: BusinessUnit;
+  menus: Array<{
+    id: number;
+    nama_menu: string;
+    url_link: string;
+    parent: number | null;
+    allowed: boolean;
+    permissions: MenuPermission;
+  }>;
+}
+
 export interface LoginRequest {
   username: string;
   password: string;
+  business_unit_id: number;
 }
 
 export interface LoginResponse {
@@ -21,6 +51,7 @@ export interface LoginResponse {
   message: string;
   data: {
     user: User;
+    business_unit: BusinessUnit;
     token: string;
   };
 }
@@ -29,25 +60,4 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
-}
-
-export interface BusinessUnit {
-  id?: number;
-  business_unit: string;
-  active: string; // 'y' or 'n'
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface PrivilegeUser {
-  id?: number;
-  user_id: number;
-  menu_id: number;
-  allowed: boolean;
-  c: boolean;
-  r: boolean;
-  u: boolean;
-  d: boolean;
-  created_at?: Date;
-  updated_at?: Date;
 }

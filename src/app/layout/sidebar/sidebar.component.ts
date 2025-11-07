@@ -6,7 +6,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { Menu } from '../../models/menu.model';
 import { MenuService } from '../../services/menu.service';
-import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -40,7 +39,6 @@ export class SidebarComponent implements OnInit {
 
   constructor(
     private menuService: MenuService,
-    private authService: AuthService,
     public router: Router
   ) {}
 
@@ -49,31 +47,20 @@ export class SidebarComponent implements OnInit {
   }
 
   loadMenus(): void {
-    this.authService.getUserPrivileges().subscribe({
-      next: (response: any) => {
-        // Response structure: { success: true, data: { user, business_unit, menus: [...] } }
-        const data = response.data || response;
-        const menus = data.menus || [];
-        
-        console.log('User privileges response:', response);
-        console.log('Menus from API:', menus);
-        
-        // Filter menus with allowed=true
-        const allowedMenus = menus.filter((menu: any) => menu.allowed === true);
-        
-        console.log('Allowed menus:', allowedMenus);
-        
-        // Build tree structure dari allowed menus
-        const menuTree = this.buildMenuTree(allowedMenus);
+    // Gunakan endpoint baru untuk mendapatkan menu dengan privilege filtering
+    this.menuService.getUserMenus().subscribe({
+      next: (menus: any[]) => {
+        // Rebuild tree structure dari flat menu array
+        const menuTree = this.buildMenuTree(menus);
         
         // Convert URL dari Laravel ke Angular routes
         const convertedMenus = this.convertMenuUrls(menuTree);
         
         this.menus = convertedMenus;
-        console.log('Final menus for sidebar:', this.menus);
+        console.log('Loaded menus from privileges:', this.menus);
       },
       error: (error: any) => {
-        console.error('Error loading user privileges:', error);
+        console.error('Error loading menus:', error);
         // Fallback ke mock data jika API error
         this.loadMockMenus();
       }

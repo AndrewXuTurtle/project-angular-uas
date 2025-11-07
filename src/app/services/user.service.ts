@@ -16,6 +16,13 @@ export class UserService {
   /**
    * Get all users
    */
+  getAll(): Observable<ApiResponse<User[]>> {
+    return this.http.get<ApiResponse<User[]>>(this.apiUrl);
+  }
+
+  /**
+   * Get all users (legacy method)
+   */
   getUsers(): Observable<User[]> {
     return this.http.get<ApiResponse<User[]>>(this.apiUrl).pipe(
       map(response => {

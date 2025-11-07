@@ -9,7 +9,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';
+import { environment } from '../../../environments/environment';
+
+interface BusinessUnit {
+  id: number;
+  business_unit: string;
+  active: string;
+}
 
 @Component({
   selector: 'app-login',
@@ -23,7 +32,8 @@ import { AuthService } from '../auth.service';
     MatButtonModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatIconModule
+    MatIconModule,
+    MatSelectModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -33,13 +43,15 @@ export class LoginComponent implements OnInit {
   loading = false;
   returnUrl: string = '';
   hidePassword = true;
+  businessUnits: BusinessUnit[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -49,14 +61,32 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // Inisialisasi form
+    // Load business units for dropdown
+    this.loadBusinessUnits();
+
+    // Inisialisasi form with business_unit_id
     this.loginForm = this.formBuilder.group({
       username: ['', Validators.required],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
+      business_unit_id: ['', Validators.required]
     });
 
     // Get return url dari query params atau default ke dashboard
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+  }
+
+  loadBusinessUnits(): void {
+    this.http.get<any>(`${environment.apiUrl}/business-units/list`).subscribe({
+      next: (response) => {
+        this.businessUnits = response.data || [];
+      },
+      error: (error) => {
+        console.error('Error loading business units:', error);
+        this.snackBar.open('Failed to load business units', 'Close', {
+          duration: 3000
+        });
+      }
+    });
   }
 
   get f() {
@@ -72,53 +102,22 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
-        // Check if response is successful
+        this.loading = false;
         if (response.success) {
-          // Load user privileges after successful login
-          this.authService.getUserPrivileges().subscribe({
-            next: (privilegesResponse) => {
-              this.loading = false;
-              
-              this.snackBar.open(response.message || 'Login berhasil!', 'Tutup', {
-                duration: 3000,
-                horizontalPosition: 'end',
-                verticalPosition: 'top',
-                panelClass: ['success-snackbar']
-              });
-              
-              // Redirect ke halaman sebelumnya atau dashboard
-              this.router.navigate([this.returnUrl]);
-            },
-            error: (error) => {
-              this.loading = false;
-              console.error('Error loading privileges:', error);
-              
-              // Tetap redirect meskipun error load privileges
-              this.snackBar.open('Login berhasil!', 'Tutup', {
-                duration: 3000,
-                horizontalPosition: 'end',
-                verticalPosition: 'top',
-                panelClass: ['success-snackbar']
-              });
-              
-              this.router.navigate([this.returnUrl]);
-            }
+          // Store business unit in localStorage
+          localStorage.setItem('business_unit', JSON.stringify(response.data.business_unit));
+          
+          this.snackBar.open(response.message || 'Login berhasil!', 'Tutup', {
+            duration: 3000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
           });
-        } else {
-          this.loading = false;
-          this.snackBar.open(
-            response.message || 'Login gagal.',
-            'Tutup',
-            {
-              duration: 5000,
-              horizontalPosition: 'end',
-              verticalPosition: 'top',
-              panelClass: ['error-snackbar']
-            }
-          );
+          
+          this.router.navigate([this.returnUrl]);
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         this.loading = false;
         const errorMessage = error.error?.message || error.message || 'Login gagal. Silakan coba lagi.';
         this.snackBar.open(errorMessage, 'Tutup', {

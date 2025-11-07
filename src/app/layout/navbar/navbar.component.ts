@@ -9,6 +9,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../auth/auth.service';
 import { User } from '../../models/user.model';
+import { BuSwitcherComponent } from '../bu-switcher/bu-switcher.component';
 
 @Component({
   selector: 'app-navbar',
@@ -20,7 +21,8 @@ import { User } from '../../models/user.model';
     MatIconModule,
     MatMenuModule,
     MatBadgeModule,
-    MatDividerModule
+    MatDividerModule,
+    BuSwitcherComponent
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'

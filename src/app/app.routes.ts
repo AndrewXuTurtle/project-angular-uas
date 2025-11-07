@@ -42,8 +42,8 @@ export const routes: Routes = [
         loadComponent: () => import('./business-units/business-units.component').then(m => m.BusinessUnitsComponent)
       },
       {
-        path: 'transaksis',
-        loadComponent: () => import('./transaksis/transaksis.component').then(m => m.TransaksisComponent)
+        path: 'settings',
+        loadComponent: () => import('./settings/settings.component').then(m => m.SettingsComponent)
       },
       {
         path: 'profile',

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -36,7 +36,7 @@ import { AuthService } from '../auth/auth.service';
   templateUrl: './transaksis.component.html',
   styleUrl: './transaksis.component.scss'
 })
-export class TransaksisComponent implements OnInit {
+export class TransaksisComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['id', 'kode_transaksi', 'nama_transaksi', 'jumlah', 'tanggal', 'status', 'actions'];
   dataSource: MatTableDataSource<Transaksi>;
   loading = false;
@@ -92,13 +92,13 @@ export class TransaksisComponent implements OnInit {
     this.loading = true;
     console.log('Loading transaksis...');
 
-    this.transaksiService.getTransaksis().subscribe({
-      next: (transaksis) => {
-        console.log('Transaksis loaded:', transaksis);
-        this.dataSource.data = transaksis;
+    this.transaksiService.getAll().subscribe({
+      next: (response: any) => {
+        console.log('Transaksis loaded:', response);
+        this.dataSource.data = response.data || [];
         this.loading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading transaksis:', error);
         this.showSnackBar('Error loading transaksis: ' + (error.error?.message || error.message), 'error');
         this.loading = false;
@@ -128,10 +128,12 @@ export class TransaksisComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'approved': return 'chip-approved';
-      case 'rejected': return 'chip-rejected';
-      default: return 'chip-pending';
+    switch (status?.toLowerCase()) {
+      case 'approved': return 'status-active';
+      case 'pending': return 'status-pending';
+      case 'rejected': return 'status-cancelled';
+      case 'completed': return 'status-completed';
+      default: return 'status-pending';
     }
   }
 
@@ -148,12 +150,12 @@ export class TransaksisComponent implements OnInit {
   deleteTransaksi(transaksi: Transaksi): void {
     if (confirm(`Are you sure you want to delete transaksi "${transaksi.nama_transaksi}"?`)) {
       if (transaksi.id) {
-        this.transaksiService.deleteTransaksi(transaksi.id).subscribe({
+        this.transaksiService.delete(transaksi.id).subscribe({
           next: () => {
             this.loadTransaksis();
             this.showSnackBar('Transaksi deleted successfully', 'success');
           },
-          error: (error) => {
+          error: (error: any) => {
             this.showSnackBar('Error deleting transaksi: ' + error.message, 'error');
           }
         });
