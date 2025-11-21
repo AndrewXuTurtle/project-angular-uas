@@ -140,41 +140,49 @@
         .user-identity {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 24px;
 
           .user-icon {
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 36px;
-            width: 36px;
-            height: 36px;
+            font-size: 44px;
+            width: 44px;
+            height: 44px;
+            transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
           }
 
           .user-basic-info {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
 
             .user-id {
-              font-size: 12px;
+              font-size: 13px;
               color: #a0aec0;
               font-weight: 600;
-              letter-spacing: 0.5px;
+              letter-spacing: 0.8px;
+              text-transform: uppercase;
             }
 
             .user-username {
-              font-size: 20px;
-              font-weight: 700;
+              font-size: 22px;
+              font-weight: 800;
               color: #2d3748;
+              letter-spacing: -0.5px;
             }
           }
         }
 
+        &:hover .user-icon {
+          transform: scale(1.1) rotate(5deg);
+        }
+
         .user-status-chips {
           display: flex;
-          gap: 10px;
+          gap: 12px;
+          flex-wrap: wrap;
         }
       }
 
@@ -345,34 +353,57 @@
 
 // Modern chips styling with gradients
 mat-chip {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.8px !important;
   border-radius: 20px !important;
-  padding: 6px 14px !important;
+  padding: 8px 18px !important;
+  min-height: 36px !important;
+  text-transform: uppercase !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
   
   &.chip-admin {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+    
+    &:hover {
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5) !important;
+      transform: translateY(-2px);
+    }
   }
 
   &.chip-user {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4) !important;
+    
+    &:hover {
+      box-shadow: 0 6px 16px rgba(240, 147, 251, 0.5) !important;
+      transform: translateY(-2px);
+    }
   }
 
   &.chip-active {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4) !important;
+    
+    &:hover {
+      box-shadow: 0 6px 16px rgba(79, 172, 254, 0.5) !important;
+      transform: translateY(-2px);
+    }
   }
 
   &.chip-inactive {
-    background: linear-gradient(135deg, #a8a8a8 0%, #6b6b6b 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(168, 168, 168, 0.3);
+    background: linear-gradient(135deg, #a8a8a8 0%, #6b6b6b 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(168, 168, 168, 0.4) !important;
+    
+    &:hover {
+      box-shadow: 0 6px 16px rgba(168, 168, 168, 0.5) !important;
+      transform: translateY(-2px);
+    }
   }
 }
 

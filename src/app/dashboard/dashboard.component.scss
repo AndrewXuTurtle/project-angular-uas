@@ -2,6 +2,7 @@
   max-width: 1400px;
   margin: 0 auto;
   animation: fadeIn 300ms ease-out;
+  position: relative;
 }
 
 @keyframes fadeIn {
@@ -12,6 +13,101 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// Loading Overlay with Cool Animation
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 300ms ease-out;
+  
+  .loading-content {
+    text-align: center;
+    animation: floatIn 800ms ease-out;
+    
+    mat-spinner {
+      margin: 0 auto 32px;
+      
+      ::ng-deep circle {
+        stroke: white !important;
+        stroke-width: 3px;
+        animation: dashAnimation 1.5s ease-in-out infinite;
+      }
+    }
+    
+    .loading-text {
+      color: white;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .loading-subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+      animation: fadeInUp 600ms ease-out 200ms both;
+    }
+  }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes dashAnimation {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -50;
+  }
+  100% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: -150;
   }
 }
 

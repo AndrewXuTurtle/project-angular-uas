@@ -54,15 +54,15 @@
         [matMenuTriggerFor]="userMenu"
         class="user-button">
         <mat-icon class="user-icon">account_circle</mat-icon>
-        <span class="user-name">{{ currentUser?.full_name || 'User' }}</span>
+        <span class="user-name">{{ currentUser?.username || 'User' }}</span>
         <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
       </button>
 
       <mat-menu #userMenu="matMenu" xPosition="before">
         <div class="user-menu-header">
           <div class="user-info">
-            <p class="user-full-name">{{ currentUser?.full_name }}</p>
-            <p class="user-email">{{ currentUser?.email }}</p>
+            <p class="user-full-name">{{ currentUser?.username }}</p>
+            <p class="user-email">Level: {{ currentUser?.level | titlecase }}</p>
           </div>
         </div>
         <mat-divider></mat-divider>

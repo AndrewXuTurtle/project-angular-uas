@@ -1,9 +1,20 @@
 <div class="dashboard-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <mat-spinner diameter="80"></mat-spinner>
+        <h2 class="loading-text">Loading Dashboard...</h2>
+        <p class="loading-subtitle">Fetching your data</p>
+      </div>
+    </div>
+  }
+
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Selamat datang di Admin Dashboard</p>
+      <p class="page-subtitle">Selamat datang, {{ currentUser?.username || 'User' }}!</p>
     </div>
     <button mat-raised-button color="primary" (click)="refreshStats()">
       <mat-icon>refresh</mat-icon>
@@ -26,7 +37,7 @@
               <span>{{ stat.trendValue }}</span>
             </div>
           </div>
-          <div class="stat-icon" [style.background-color]="stat.color">
+          <div class="stat-icon" [style.background]="stat.color">
             <mat-icon>{{ stat.icon }}</mat-icon>
           </div>
         </div>
@@ -36,33 +47,6 @@
 
   <!-- Content Grid -->
   <div class="content-grid">
-    <!-- Recent Activities -->
-    <mat-card class="activity-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>history</mat-icon>
-          Recent Activities
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="activity-list">
-          <div *ngFor="let activity of recentActivities" class="activity-item">
-            <div class="activity-avatar">
-              <mat-icon>account_circle</mat-icon>
-            </div>
-            <div class="activity-details">
-              <p class="activity-user">{{ activity.user }}</p>
-              <p class="activity-action">{{ activity.action }}</p>
-              <p class="activity-time">{{ activity.time }}</p>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-      <mat-card-actions align="end">
-        <button mat-button color="primary">View All</button>
-      </mat-card-actions>
-    </mat-card>
-
     <!-- Quick Actions -->
     <mat-card class="quick-actions-card">
       <mat-card-header>
@@ -75,52 +59,52 @@
         <div class="actions-grid">
           <button mat-raised-button class="action-button" routerLink="/admin/users">
             <mat-icon>person_add</mat-icon>
-            <span>Add User</span>
+            <span>Manage Users</span>
           </button>
           <button mat-raised-button class="action-button" routerLink="/admin/menus">
-            <mat-icon>add</mat-icon>
-            <span>Add Menu</span>
+            <mat-icon>menu_book</mat-icon>
+            <span>Manage Menus</span>
           </button>
           <button mat-raised-button class="action-button" routerLink="/admin/business-units">
             <mat-icon>business</mat-icon>
-            <span>Add Business Unit</span>
+            <span>Business Units</span>
           </button>
-          <button mat-raised-button class="action-button" routerLink="/admin/privileges">
-            <mat-icon>security</mat-icon>
-            <span>Manage Privileges</span>
+          <button mat-raised-button class="action-button" routerLink="/admin/profile">
+            <mat-icon>settings</mat-icon>
+            <span>Profile Settings</span>
           </button>
         </div>
       </mat-card-content>
     </mat-card>
-  </div>
 
-  <!-- System Info -->
-  <mat-card class="system-info-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>info</mat-icon>
-        System Information
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Application:</span>
-          <span class="info-value">Admin Dashboard</span>
+    <!-- System Info -->
+    <mat-card class="system-info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          System Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Application:</span>
+            <span class="info-value">Admin Dashboard</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Version:</span>
+            <span class="info-value">1.0.0</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Your Role:</span>
+            <span class="info-value badge badge-development">{{ currentUser?.level | titlecase }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Status:</span>
+            <span class="info-value badge badge-mock">{{ currentUser?.is_active ? 'Active' : 'Inactive' }}</span>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">Version:</span>
-          <span class="info-value">1.0.0</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Environment:</span>
-          <span class="info-value badge badge-development">Development</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">API Status:</span>
-          <span class="info-value badge badge-mock">Mock Data</span>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
+  </div>
 </div>
