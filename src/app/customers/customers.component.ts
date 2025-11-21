@@ -12,8 +12,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
 import { SelectionModel } from '@angular/cdk/collections';
 import { CustomerService } from '../services/customer.service';
+import { BusinessUnitService } from '../services/business-unit.service';
 import { AuthService } from '../auth/auth.service';
 import { Customer, CustomerFormData } from '../models/customer.model';
 
@@ -56,6 +58,11 @@ export class CustomersComponent implements OnInit {
   ngOnInit(): void {
     this.currentBusinessUnit = this.authService.getCurrentBusinessUnit();
     this.isAdmin = this.authService.isAdmin();
+    console.log('🔍 Customers Component Init:', {
+      isAdmin: this.isAdmin,
+      currentUser: this.authService.getCurrentUser(),
+      displayedColumns: this.displayedColumns
+    });
     this.loadCustomers();
   }
 
@@ -240,7 +247,8 @@ export class CustomersComponent implements OnInit {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatSelectModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.customer ? 'Edit Customer' : 'Tambah Customer' }}</h2>
@@ -280,6 +288,18 @@ export class CustomersComponent implements OnInit {
             <mat-error>Alamat wajib diisi</mat-error>
           }
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Business Unit</mat-label>
+          <mat-select formControlName="business_unit_id" required>
+            @for (bu of businessUnits; track bu.id) {
+              <mat-option [value]="bu.id">{{ bu.business_unit }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('business_unit_id')?.hasError('required') && form.get('business_unit_id')?.touched) {
+            <mat-error>Business Unit wajib dipilih</mat-error>
+          }
+        </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -301,19 +321,37 @@ export class CustomersComponent implements OnInit {
     }
   `]
 })
-export class CustomerFormDialogComponent {
+export class CustomerFormDialogComponent implements OnInit {
   form: FormGroup;
+  businessUnits: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CustomerFormDialogComponent>,
+    private businessUnitService: BusinessUnitService,
     @Inject(MAT_DIALOG_DATA) public data: { customer: Customer | null }
   ) {
     this.form = this.fb.group({
       name: [data.customer?.name || '', Validators.required],
       email: [data.customer?.email || '', [Validators.required, Validators.email]],
       phone: [data.customer?.phone || '', Validators.required],
-      address: [data.customer?.address || '', Validators.required]
+      address: [data.customer?.address || '', Validators.required],
+      business_unit_id: [data.customer?.business_unit_id || null, Validators.required]
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadBusinessUnits();
+  }
+
+  loadBusinessUnits(): void {
+    this.businessUnitService.getBusinessUnits().subscribe({
+      next: (businessUnits: any) => {
+        this.businessUnits = businessUnits;
+      },
+      error: (error: any) => {
+        console.error('Error loading business units:', error);
+      }
     });
   }
 

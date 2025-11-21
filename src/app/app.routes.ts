@@ -57,6 +57,30 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'user',
+    loadComponent: () => import('./layout/layout.component').then(m => m.LayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'customers',
+        loadComponent: () => import('./customers/customers.component').then(m => m.CustomersComponent)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
+      }
+    ]
+  },
+  {
     path: '**',
     redirectTo: '/login'
   }

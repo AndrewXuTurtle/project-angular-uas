@@ -16,7 +16,7 @@
           <mat-icon>add</mat-icon>
           Tambah Customer
         </button>
-        @if (selection.selected.length > 0 && isAdmin) {
+        @if (selection.selected.length > 0) {
           <button mat-raised-button color="warn" (click)="bulkDelete()">
             <mat-icon>delete_sweep</mat-icon>
             Hapus Terpilih ({{ selection.selected.length }})
@@ -47,24 +47,20 @@
             <!-- Checkbox Column -->
             <ng-container matColumnDef="select">
               <th mat-header-cell *matHeaderCellDef>
-                @if (isAdmin) {
-                  <mat-checkbox
-                    (change)="$event ? toggleAllRows() : null"
-                    [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()"
-                    [aria-label]="checkboxLabel()">
-                  </mat-checkbox>
-                }
+                <mat-checkbox
+                  (change)="$event ? toggleAllRows() : null"
+                  [checked]="selection.hasValue() && isAllSelected()"
+                  [indeterminate]="selection.hasValue() && !isAllSelected()"
+                  [aria-label]="checkboxLabel()">
+                </mat-checkbox>
               </th>
               <td mat-cell *matCellDef="let customer">
-                @if (isAdmin) {
-                  <mat-checkbox
-                    (click)="$event.stopPropagation()"
-                    (change)="$event ? selection.toggle(customer) : null"
-                    [checked]="selection.isSelected(customer)"
-                    [aria-label]="checkboxLabel(customer)">
-                  </mat-checkbox>
-                }
+                <mat-checkbox
+                  (click)="$event.stopPropagation()"
+                  (change)="$event ? selection.toggle(customer) : null"
+                  [checked]="selection.isSelected(customer)"
+                  [aria-label]="checkboxLabel(customer)">
+                </mat-checkbox>
               </td>
             </ng-container>
 
@@ -107,16 +103,12 @@
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Aksi</th>
               <td mat-cell *matCellDef="let customer">
-                @if (isAdmin) {
-                  <button mat-icon-button color="primary" (click)="openEditDialog(customer)" matTooltip="Edit">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button color="warn" (click)="deleteCustomer(customer)" matTooltip="Hapus">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                } @else {
-                  <span class="no-action">-</span>
-                }
+                <button mat-icon-button color="primary" (click)="openEditDialog(customer)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteCustomer(customer)" matTooltip="Hapus">
+                  <mat-icon>delete</mat-icon>
+                </button>
               </td>
             </ng-container>
 

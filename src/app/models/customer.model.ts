@@ -4,6 +4,7 @@ export interface Customer {
   email: string;
   phone: string;
   address: string;
+  business_unit_id?: number;
   business_unit?: {
     id: number;
     business_unit: string;
@@ -17,6 +18,7 @@ export interface CustomerFormData {
   email: string;
   phone: string;
   address: string;
+  business_unit_id: number;
 }
 
 export interface ApiResponse<T> {

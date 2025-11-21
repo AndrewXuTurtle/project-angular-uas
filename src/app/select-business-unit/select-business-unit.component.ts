@@ -97,7 +97,8 @@ export class SelectBusinessUnitComponent implements OnInit {
             'Tutup',
             { duration: 2000 }
           );
-          this.router.navigate(['/admin/dashboard']);
+          // Redirect ke /user/dashboard untuk user biasa
+          this.router.navigate(['/user/dashboard']);
         }
       },
       error: (error) => {

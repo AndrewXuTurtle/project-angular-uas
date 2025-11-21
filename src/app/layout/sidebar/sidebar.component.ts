@@ -42,17 +42,11 @@ export class SidebarComponent implements OnInit {
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
     
-    // LOGIC: Admin uses static menu, User uses dynamic menu from database
-    if (this.isAdmin) {
-      console.log('👑 Admin - Using static menu structure (full access)');
-      this.buildAdminMenus();
-    } else {
-      console.log('👤 User - Loading dynamic menu from /api/user/menus');
-      console.log('📋 Menus filtered by tbl_user_menus for this user');
-      // User starts with empty menu, will be populated from API
-      this.menus = [];
-      this.loadMenusFromDatabase();
-    }
+    // BOTH admin and user now use dynamic menu from database
+    console.log(this.isAdmin ? '👑 Admin - Loading dynamic menu from database' : '👤 User - Loading dynamic menu from database');
+    console.log('📋 Menus filtered by tbl_user_menus');
+    this.menus = [];
+    this.loadMenusFromDatabase();
   }
 
   /**
@@ -109,13 +103,15 @@ export class SidebarComponent implements OnInit {
       .filter(m => m.parent === menu.id)
       .map(child => this.buildMenuItem(child, allMenus));
 
-    // Fix URL: prepend /admin if not already present
+    // Fix URL: prepend /admin or /user based on role
     let route = menu.url_link;
-    if (route && !route.startsWith('/admin/') && !route.startsWith('/login')) {
+    const prefix = this.isAdmin ? '/admin' : '/user';
+    
+    if (route && !route.startsWith('/admin/') && !route.startsWith('/user/') && !route.startsWith('/login')) {
       // Remove leading slash if exists
       route = route.startsWith('/') ? route.substring(1) : route;
-      // Prepend /admin/
-      route = `/admin/${route}`;
+      // Prepend role-based prefix
+      route = `${prefix}/${route}`;
     }
 
     return {
