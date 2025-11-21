@@ -15,8 +15,12 @@ export class CustomerService {
   /**
    * Get all customers (filtered by selected business unit)
    */
-  getAll(): Observable<ApiResponse<Customer[]>> {
-    return this.http.get<ApiResponse<Customer[]>>(this.apiUrl);
+  getAll(businessUnitId?: number): Observable<ApiResponse<Customer[]>> {
+    const params: any = {};
+    if (businessUnitId) {
+      params.business_unit_id = businessUnitId;
+    }
+    return this.http.get<ApiResponse<Customer[]>>(this.apiUrl, { params });
   }
 
   /**

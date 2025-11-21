@@ -136,16 +136,20 @@ export class CustomersComponent implements OnInit {
   loadCustomers(): void {
     this.loading = true;
     this.selection.clear(); // Clear selection when reloading
-    this.customerService.getAll().subscribe({
+    
+    console.log('📡 Loading customers for BU ID:', this.selectedBusinessUnitId);
+    
+    this.customerService.getAll(this.selectedBusinessUnitId || undefined).subscribe({
       next: (response: any) => {
         this.loading = false;
         if (response.success) {
           this.customers = response.data;
+          console.log('✅ Loaded', this.customers.length, 'customers');
         }
       },
       error: (error: any) => {
         this.loading = false;
-        console.error('Error loading customers:', error);
+        console.error('❌ Error loading customers:', error);
         this.snackBar.open(
           error.error?.message || 'Gagal memuat customers',
           'Tutup',
@@ -182,7 +186,15 @@ export class CustomersComponent implements OnInit {
   }
 
   createCustomer(data: CustomerFormData): void {
-    this.customerService.create(data).subscribe({
+    // Add business unit ID to customer data
+    const customerData: any = {
+      ...data,
+      business_unit_id: this.selectedBusinessUnitId
+    };
+    
+    console.log('➕ Creating customer:', customerData);
+    
+    this.customerService.create(customerData).subscribe({
       next: (response: any) => {
         if (response.success) {
           this.snackBar.open('Customer berhasil dibuat', 'Tutup', { duration: 3000 });
@@ -190,7 +202,7 @@ export class CustomersComponent implements OnInit {
         }
       },
       error: (error: any) => {
-        console.error('Error creating customer:', error);
+        console.error('❌ Error creating customer:', error);
         this.snackBar.open(
           error.error?.message || 'Gagal membuat customer',
           'Tutup',
