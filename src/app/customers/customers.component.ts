@@ -10,6 +10,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { SelectionModel } from '@angular/cdk/collections';
 import { CustomerService } from '../services/customer.service';
 import { AuthService } from '../auth/auth.service';
 import { Customer, CustomerFormData } from '../models/customer.model';
@@ -28,14 +31,17 @@ import { Customer, CustomerFormData } from '../models/customer.model';
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatCheckboxModule,
+    MatTooltipModule
   ],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })
 export class CustomersComponent implements OnInit {
   customers: Customer[] = [];
-  displayedColumns: string[] = ['name', 'email', 'phone', 'address', 'business_unit', 'actions'];
+  displayedColumns: string[] = ['select', 'name', 'email', 'phone', 'address', 'business_unit', 'actions'];
+  selection = new SelectionModel<Customer>(true, []);
   loading = false;
   currentBusinessUnit: any = null;
   isAdmin = false;
@@ -53,8 +59,33 @@ export class CustomersComponent implements OnInit {
     this.loadCustomers();
   }
 
+  /** Whether the number of selected elements matches the total number of rows. */
+  isAllSelected(): boolean {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.customers.length;
+    return numSelected === numRows;
+  }
+
+  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  toggleAllRows(): void {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+      return;
+    }
+    this.selection.select(...this.customers);
+  }
+
+  /** The label for the checkbox on the passed row */
+  checkboxLabel(row?: Customer): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.id}`;
+  }
+
   loadCustomers(): void {
     this.loading = true;
+    this.selection.clear(); // Clear selection when reloading
     this.customerService.getAll().subscribe({
       next: (response: any) => {
         this.loading = false;
@@ -151,6 +182,45 @@ export class CustomersComponent implements OnInit {
           console.error('Error deleting customer:', error);
           this.snackBar.open(
             error.error?.message || 'Gagal menghapus customer',
+            'Tutup',
+            { duration: 3000 }
+          );
+        }
+      });
+    }
+  }
+
+  bulkDelete(): void {
+    const selectedCount = this.selection.selected.length;
+    if (selectedCount === 0) {
+      this.snackBar.open('Pilih minimal 1 customer untuk dihapus', 'Tutup', { duration: 3000 });
+      return;
+    }
+
+    const confirmMessage = selectedCount === 1
+      ? `Yakin ingin menghapus ${this.selection.selected[0].name}?`
+      : `Yakin ingin menghapus ${selectedCount} customers?`;
+
+    if (confirm(confirmMessage)) {
+      const ids = this.selection.selected.map(c => c.id);
+      this.loading = true;
+      this.customerService.bulkDelete(ids).subscribe({
+        next: (response: any) => {
+          this.loading = false;
+          if (response.success) {
+            this.snackBar.open(
+              `${selectedCount} customer berhasil dihapus`,
+              'Tutup',
+              { duration: 3000 }
+            );
+            this.loadCustomers();
+          }
+        },
+        error: (error: any) => {
+          this.loading = false;
+          console.error('Error bulk deleting customers:', error);
+          this.snackBar.open(
+            error.error?.message || 'Gagal menghapus customers',
             'Tutup',
             { duration: 3000 }
           );

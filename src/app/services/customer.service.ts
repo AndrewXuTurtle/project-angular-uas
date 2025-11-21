@@ -46,4 +46,11 @@ export class CustomerService {
   delete(id: number): Observable<ApiResponse<null>> {
     return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Bulk delete customers (admin only)
+   */
+  bulkDelete(ids: number[]): Observable<ApiResponse<null>> {
+    return this.http.post<ApiResponse<null>>(`${this.apiUrl}/bulk-delete`, { ids });
+  }
 }
