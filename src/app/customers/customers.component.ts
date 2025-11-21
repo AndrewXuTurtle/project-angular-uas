@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,25 +32,30 @@ import { Customer, CustomerFormData } from '../models/customer.model';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
+    FormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatCheckboxModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSelectModule
   ],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })
 export class CustomersComponent implements OnInit {
   customers: Customer[] = [];
-  displayedColumns: string[] = ['select', 'name', 'email', 'phone', 'address', 'business_unit', 'actions'];
+  displayedColumns: string[] = ['select', 'name', 'email', 'phone', 'address', 'actions'];
   selection = new SelectionModel<Customer>(true, []);
   loading = false;
   currentBusinessUnit: any = null;
   isAdmin = false;
+  businessUnits: any[] = [];
+  selectedBusinessUnitId: number | null = null;
 
   constructor(
     private customerService: CustomerService,
     private authService: AuthService,
+    private businessUnitService: BusinessUnitService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -63,6 +68,36 @@ export class CustomersComponent implements OnInit {
       currentUser: this.authService.getCurrentUser(),
       displayedColumns: this.displayedColumns
     });
+    
+    // Load business units for admin to switch between them
+    if (this.isAdmin) {
+      this.loadBusinessUnits();
+    } else {
+      // For regular user, use their selected business unit
+      this.selectedBusinessUnitId = this.currentBusinessUnit?.id || null;
+      this.loadCustomers();
+    }
+  }
+
+  loadBusinessUnits(): void {
+    this.businessUnitService.getBusinessUnits().subscribe({
+      next: (businessUnits: any) => {
+        this.businessUnits = businessUnits;
+        // Auto-select first business unit if available
+        if (this.businessUnits.length > 0) {
+          this.selectedBusinessUnitId = this.businessUnits[0].id;
+          this.onBusinessUnitChange();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading business units:', error);
+        this.loadCustomers(); // Load anyway even if BU load fails
+      }
+    });
+  }
+
+  onBusinessUnitChange(): void {
+    console.log('📍 Business Unit changed to:', this.selectedBusinessUnitId);
     this.loadCustomers();
   }
 
@@ -247,8 +282,7 @@ export class CustomersComponent implements OnInit {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatSelectModule
+    MatButtonModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.customer ? 'Edit Customer' : 'Tambah Customer' }}</h2>
@@ -288,18 +322,6 @@ export class CustomersComponent implements OnInit {
             <mat-error>Alamat wajib diisi</mat-error>
           }
         </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Business Unit</mat-label>
-          <mat-select formControlName="business_unit_id" required>
-            @for (bu of businessUnits; track bu.id) {
-              <mat-option [value]="bu.id">{{ bu.business_unit }}</mat-option>
-            }
-          </mat-select>
-          @if (form.get('business_unit_id')?.hasError('required') && form.get('business_unit_id')?.touched) {
-            <mat-error>Business Unit wajib dipilih</mat-error>
-          }
-        </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -328,31 +350,18 @@ export class CustomerFormDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CustomerFormDialogComponent>,
-    private businessUnitService: BusinessUnitService,
     @Inject(MAT_DIALOG_DATA) public data: { customer: Customer | null }
   ) {
     this.form = this.fb.group({
       name: [data.customer?.name || '', Validators.required],
       email: [data.customer?.email || '', [Validators.required, Validators.email]],
       phone: [data.customer?.phone || '', Validators.required],
-      address: [data.customer?.address || '', Validators.required],
-      business_unit_id: [data.customer?.business_unit_id || null, Validators.required]
+      address: [data.customer?.address || '', Validators.required]
     });
   }
 
   ngOnInit(): void {
-    this.loadBusinessUnits();
-  }
-
-  loadBusinessUnits(): void {
-    this.businessUnitService.getBusinessUnits().subscribe({
-      next: (businessUnits: any) => {
-        this.businessUnits = businessUnits;
-      },
-      error: (error: any) => {
-        console.error('Error loading business units:', error);
-      }
-    });
+    // No need to load business units anymore
   }
 
   onSubmit(): void {

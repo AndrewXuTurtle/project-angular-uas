@@ -4,13 +4,24 @@
       <mat-card-title>
         <mat-icon>people</mat-icon>
         Customers
-        @if (currentBusinessUnit) {
-          <span class="bu-badge">{{ currentBusinessUnit.business_unit }}</span>
-        }
       </mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Business Unit Switcher for Admin -->
+      @if (isAdmin && businessUnits.length > 0) {
+        <div class="bu-switcher">
+          <mat-form-field appearance="outline">
+            <mat-label>Pilih Business Unit</mat-label>
+            <mat-select [(ngModel)]="selectedBusinessUnitId" (selectionChange)="onBusinessUnitChange()">
+              @for (bu of businessUnits; track bu.id) {
+                <mat-option [value]="bu.id">{{ bu.business_unit }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
+      
       <div class="actions-bar">
         <button mat-raised-button color="primary" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>

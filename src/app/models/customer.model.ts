@@ -18,7 +18,6 @@ export interface CustomerFormData {
   email: string;
   phone: string;
   address: string;
-  business_unit_id: number;
 }
 
 export interface ApiResponse<T> {
