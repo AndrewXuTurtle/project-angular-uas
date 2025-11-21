@@ -9,16 +9,31 @@
 
     <mat-card-content>
       <!-- Business Unit Switcher for Admin -->
-      @if (isAdmin && businessUnits.length > 0) {
+      @if (isAdmin) {
         <div class="bu-switcher">
           <mat-form-field appearance="outline">
             <mat-label>Pilih Business Unit</mat-label>
-            <mat-select [(ngModel)]="selectedBusinessUnitId" (selectionChange)="onBusinessUnitChange()">
-              @for (bu of businessUnits; track bu.id) {
-                <mat-option [value]="bu.id">{{ bu.business_unit }}</mat-option>
-              }
-            </mat-select>
+            @if (businessUnits.length > 0) {
+              <mat-select [(ngModel)]="selectedBusinessUnitId" (selectionChange)="onBusinessUnitChange()">
+                @for (bu of businessUnits; track bu.id) {
+                  <mat-option [value]="bu.id">{{ bu.business_unit }}</mat-option>
+                }
+              </mat-select>
+            } @else {
+              <mat-select disabled>
+                <mat-option>Loading...</mat-option>
+              </mat-select>
+            }
           </mat-form-field>
+          <span class="bu-info">
+            @if (businessUnits.length > 0) {
+              <mat-icon>info</mat-icon>
+              Pilih business unit untuk melihat customers
+            } @else {
+              <mat-spinner diameter="20"></mat-spinner>
+              Memuat business units...
+            }
+          </span>
         </div>
       }
       

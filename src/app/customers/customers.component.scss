@@ -33,9 +33,28 @@
   padding: 16px;
   background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   
   mat-form-field {
     width: 300px;
+    flex-shrink: 0;
+  }
+  
+  .bu-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #667eea;
+    }
   }
 }
 

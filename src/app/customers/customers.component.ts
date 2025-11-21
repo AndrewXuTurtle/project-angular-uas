@@ -80,17 +80,25 @@ export class CustomersComponent implements OnInit {
   }
 
   loadBusinessUnits(): void {
+    console.log('📡 Loading business units for admin...');
     this.businessUnitService.getBusinessUnits().subscribe({
       next: (businessUnits: any) => {
+        console.log('✅ Business units loaded:', businessUnits);
         this.businessUnits = businessUnits;
+        console.log('📊 Total business units:', this.businessUnits.length);
+        
         // Auto-select first business unit if available
         if (this.businessUnits.length > 0) {
           this.selectedBusinessUnitId = this.businessUnits[0].id;
+          console.log('🎯 Auto-selected BU:', this.businessUnits[0]);
           this.onBusinessUnitChange();
+        } else {
+          console.warn('⚠️ No business units available!');
+          this.loadCustomers(); // Load anyway
         }
       },
       error: (error: any) => {
-        console.error('Error loading business units:', error);
+        console.error('❌ Error loading business units:', error);
         this.loadCustomers(); // Load anyway even if BU load fails
       }
     });
