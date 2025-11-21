@@ -66,6 +66,12 @@
                   </h3>
                   <div class="form-grid">
                     <mat-form-field appearance="outline">
+                      <mat-label>Username</mat-label>
+                      <input matInput [value]="user.username" disabled>
+                      <mat-hint>Username cannot be changed</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
                       <mat-label>Full Name</mat-label>
                       <input matInput [(ngModel)]="editingUser[user.id!].full_name">
                     </mat-form-field>
@@ -81,7 +87,7 @@
 
                   <div class="form-row">
                     <mat-checkbox [(ngModel)]="editingUser[user.id!].is_active">
-                      Active
+                      Active Status
                     </mat-checkbox>
                   </div>
                 </div>

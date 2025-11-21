@@ -163,6 +163,9 @@ class CustomerController extends Controller
      * Update the specified customer
      * PUT /api/customers/{id}
      * Body: { name, email, phone, address }
+     * 
+     * NOTE: business_unit_id SHOULD NOT be changed after creation
+     * Customer stays in their original business unit
      */
     public function update(Request $request, $id)
     {
@@ -184,7 +187,7 @@ class CustomerController extends Controller
             ], 403);
         }
 
-        // Validasi input
+        // Validasi input - business_unit_id NOT ALLOWED in update
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|max:255|unique:customers,email,' . $id,
@@ -200,7 +203,7 @@ class CustomerController extends Controller
             ], 422);
         }
 
-        // Update customer
+        // Update customer - DO NOT update business_unit_id
         $customer->update($request->only(['name', 'email', 'phone', 'address']));
 
         return response()->json([

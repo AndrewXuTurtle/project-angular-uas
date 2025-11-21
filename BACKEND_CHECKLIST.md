@@ -34,7 +34,35 @@ Frontend Angular sudah 100% siap dan menunggu backend Laravel untuk:
 - Cek apakah business unit ada di database
 - Save customer dengan `business_unit_id`
 
-#### 3. POST /api/customers/bulk-delete
+#### 3. PUT /api/customers/{id}
+```json
+{
+  "name": "Updated Name",
+  "email": "updated@example.com",
+  "phone": "08123456789",
+  "address": "Updated Address"
+}
+```
+
+**PENTING**: 
+- ❌ **JANGAN** terima `business_unit_id` di update
+- ❌ **JANGAN** validasi `business_unit_id` di update  
+- ✅ Customer **TIDAK BISA pindah business unit** setelah dibuat
+- ✅ Hanya update: name, email, phone, address
+
+**Kenapa error?** Backend mungkin validasi `business_unit_id` di update → hapus validasi ini!
+
+```php
+// BENAR ✅
+$customer->update($request->only(['name', 'email', 'phone', 'address']));
+
+// SALAH ❌
+if (!$request->business_unit_id) {
+    return response()->json(['message' => 'Business unit tidak ditemukan'], 403);
+}
+```
+
+#### 4. POST /api/customers/bulk-delete
 ```json
 {
   "ids": [1, 2, 3, 4]
@@ -104,8 +132,39 @@ Dipanggil saat user card di-expand untuk load existing access.
 ```
 
 **Yang harus dilakukan**:
+- Update basic fields: `full_name`, `level`, `is_active`
 - Sync business units: `$user->businessUnits()->sync($businessUnitIds)`
 - Sync menus: `$user->menus()->sync($menuIds)`
+
+**PENTING - Masalah yang sering terjadi**:
+- ❌ Hanya update `level` saja
+- ✅ Harus update SEMUA field yang dikirim
+- ✅ `is_active` harus di-update (boolean)
+- ✅ `business_unit_ids` dan `menu_ids` harus di-sync
+- ✅ Username **TIDAK BISA** diubah (security)
+
+**Contoh kode yang BENAR**:
+```php
+// Update basic info
+if ($request->has('full_name')) {
+    $user->full_name = $request->full_name;
+}
+if ($request->has('level')) {
+    $user->level = $request->level;
+}
+if ($request->has('is_active')) {
+    $user->is_active = $request->is_active;  // ← JANGAN LUPA!
+}
+$user->save();
+
+// Sync relationships
+if ($request->has('business_unit_ids')) {
+    $user->businessUnits()->sync($request->business_unit_ids);
+}
+if ($request->has('menu_ids')) {
+    $user->menus()->sync($request->menu_ids);
+}
+```
 
 **Lihat detail lengkap di**: `LARAVEL_USER_UPDATE_ENDPOINT.md`
 

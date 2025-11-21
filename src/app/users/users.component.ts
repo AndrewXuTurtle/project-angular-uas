@@ -226,15 +226,26 @@ export class UsersComponent implements OnInit {
       menu_ids: editing.selectedMenus.map((m: any) => m.id)
     };
 
-    console.log('Saving user:', user.id, updateData);
+    console.log('💾 Saving user:', {
+      userId: user.id,
+      updateData,
+      editingState: editing
+    });
 
     this.userService.updateUser(user.id, updateData).subscribe({
       next: (response) => {
+        console.log('✅ User update response:', response);
         this.showSnackBar('User updated successfully', 'success');
         this.loadUsers();
       },
       error: (error) => {
-        console.error('Error updating user:', error);
+        console.error('❌ Error updating user:', {
+          error,
+          status: error.status,
+          statusText: error.statusText,
+          message: error.error?.message,
+          fullError: error
+        });
         this.showSnackBar('Error updating user: ' + (error.error?.message || error.message), 'error');
       }
     });

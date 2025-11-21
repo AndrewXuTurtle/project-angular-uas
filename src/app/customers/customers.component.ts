@@ -256,15 +256,41 @@ export class CustomersComponent implements OnInit {
   }
 
   updateCustomer(id: number, data: Partial<CustomerFormData>): void {
-    this.customerService.update(id, data).subscribe({
+    // DO NOT send business_unit_id on update
+    // Customer cannot change business unit after creation
+    const updateData: Partial<CustomerFormData> = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address
+    };
+    
+    console.log('🔄 Updating customer:', {
+      id,
+      updateData,
+      note: 'business_unit_id not sent - customer stays in original BU'
+    });
+    
+    this.customerService.update(id, updateData).subscribe({
       next: (response: any) => {
+        console.log('✅ Update customer response:', response);
         if (response.success) {
           this.snackBar.open('Customer berhasil diupdate', 'Tutup', { duration: 3000 });
           this.loadCustomers();
+        } else {
+          console.warn('⚠️ Response success=false:', response);
+          this.snackBar.open(response.message || 'Gagal mengupdate customer', 'Tutup', { duration: 3000 });
         }
       },
       error: (error: any) => {
-        console.error('Error updating customer:', error);
+        console.error('❌ Error updating customer:', {
+          error,
+          status: error.status,
+          statusText: error.statusText,
+          errorBody: error.error,
+          message: error.error?.message,
+          fullError: error
+        });
         this.snackBar.open(
           error.error?.message || 'Gagal mengupdate customer',
           'Tutup',
