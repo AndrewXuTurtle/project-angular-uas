@@ -8,6 +8,8 @@ export interface User {
   is_active: boolean;
   business_unit_id?: number;  // Single business unit
   business_unit?: string;      // Business unit name (from join)
+  business_units?: BusinessUnit[];  // Array of accessible business units
+  menus?: Menu[];  // Array of accessible menus
   created_at?: Date;
   updated_at?: Date;
 }

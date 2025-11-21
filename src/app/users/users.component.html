@@ -3,91 +3,152 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Users Management</h1>
-      <p class="page-subtitle">Manage system users</p>
+      <p class="page-subtitle">Manage system users with expandable cards</p>
     </div>
-    <button *ngIf="canCreate()" mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon>
       Add User
     </button>
   </div>
 
-  <!-- Search & Table -->
+  <!-- Search -->
   <mat-form-field class="search-field" appearance="outline">
-    <mat-label>Search</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Search users...">
+    <mat-label>Search users</mat-label>
+    <input matInput [(ngModel)]="searchText" (ngModelChange)="applyFilter()" placeholder="Search by ID, username, or name...">
     <mat-icon matPrefix>search</mat-icon>
   </mat-form-field>
 
-  <div class="table-container" *ngIf="!loading">
-    <table mat-table [dataSource]="dataSource" matSort class="users-table">
-      <!-- ID Column -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-        <td mat-cell *matCellDef="let user"> {{user.id}} </td>
-      </ng-container>
-
-      <!-- Username Column -->
-      <ng-container matColumnDef="username">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Username </th>
-        <td mat-cell *matCellDef="let user"> {{user.username}} </td>
-      </ng-container>
-
-      <!-- Full Name Column -->
-      <ng-container matColumnDef="full_name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Full Name </th>
-        <td mat-cell *matCellDef="let user"> {{user.full_name || '-'}} </td>
-      </ng-container>
-
-      <!-- Business Unit Column -->
-      <ng-container matColumnDef="business_unit">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Business Unit </th>
-        <td mat-cell *matCellDef="let user"> {{user.business_unit || '-'}} </td>
-      </ng-container>
-
-      <!-- Level Column -->
-      <ng-container matColumnDef="level">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Level </th>
-        <td mat-cell *matCellDef="let user">
-          <mat-chip [class]="user.level === 'admin' ? 'chip-admin' : 'chip-user'">
-            {{user.level}}
-          </mat-chip>
-        </td>
-      </ng-container>
-
-      <!-- Active Column -->
-      <ng-container matColumnDef="is_active">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
-        <td mat-cell *matCellDef="let user">
-          <mat-chip [class]="user.is_active ? 'chip-active' : 'chip-inactive'">
-            {{user.is_active ? 'Active' : 'Inactive'}}
-          </mat-chip>
-        </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let user">
-          <button *ngIf="canUpdate()" mat-icon-button color="primary" (click)="openEditDialog(user)" matTooltip="Edit User & Access">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button *ngIf="canDelete()" mat-icon-button color="warn" (click)="deleteUser(user)" matTooltip="Delete User">
-            <mat-icon>delete</mat-icon>
-          </button>
-          <span *ngIf="!canUpdate() && !canDelete()" class="no-actions">-</span>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" showFirstLastButtons></mat-paginator>
-  </div>
-
   <!-- Loading Indicator -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Loading users...</p>
-  </div>
+  @if (loading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading users...</p>
+    </div>
+  }
+
+  <!-- User Cards -->
+  @if (!loading) {
+    <div class="cards-container">
+      @for (user of filteredUsers; track user.id) {
+        <mat-expansion-panel (opened)="onPanelOpened(user)" class="user-card">
+          <!-- Card Header - Collapsed View -->
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="card-header-content">
+                <div class="user-identity">
+                  <mat-icon class="user-icon">person</mat-icon>
+                  <div class="user-basic-info">
+                    <span class="user-id">ID: {{ user.id }}</span>
+                    <span class="user-username">{{ user.username }}</span>
+                  </div>
+                </div>
+                <div class="user-status-chips">
+                  <mat-chip [class]="user.level === 'admin' ? 'chip-admin' : 'chip-user'">
+                    {{ user.level }}
+                  </mat-chip>
+                  <mat-chip [class]="user.is_active ? 'chip-active' : 'chip-inactive'">
+                    {{ user.is_active ? 'Active' : 'Inactive' }}
+                  </mat-chip>
+                </div>
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <!-- Card Content - Expanded View -->
+          <div class="card-content">
+            @if (editingUser[user.id!]) {
+              <div class="edit-form">
+                <!-- Basic Info Section -->
+                <div class="form-section">
+                  <h3 class="section-title">
+                    <mat-icon>info</mat-icon>
+                    Basic Information
+                  </h3>
+                  <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Full Name</mat-label>
+                      <input matInput [(ngModel)]="editingUser[user.id!].full_name">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Level</mat-label>
+                      <mat-select [(ngModel)]="editingUser[user.id!].level">
+                        <mat-option value="admin">Admin</mat-option>
+                        <mat-option value="user">User</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <mat-checkbox [(ngModel)]="editingUser[user.id!].is_active">
+                      Active
+                    </mat-checkbox>
+                  </div>
+                </div>
+
+                <!-- Business Units Section -->
+                <div class="form-section">
+                  <h3 class="section-title">
+                    <mat-icon>business</mat-icon>
+                    Business Units Access
+                  </h3>
+                  <div class="checkbox-grid">
+                    @for (bu of businessUnits; track bu.id) {
+                      <mat-checkbox 
+                        [checked]="isBusinessUnitSelected(user.id!, bu.id)"
+                        (change)="toggleBusinessUnit(user.id!, bu.id)">
+                        {{ bu.business_unit }}
+                      </mat-checkbox>
+                    }
+                    @if (businessUnits.length === 0) {
+                      <p class="no-data">No business units available</p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Menus Section -->
+                <div class="form-section">
+                  <h3 class="section-title">
+                    <mat-icon>menu</mat-icon>
+                    Menu Access
+                  </h3>
+                  <div class="checkbox-grid">
+                    @for (menu of allMenus; track menu.id) {
+                      <mat-checkbox 
+                        [checked]="isMenuSelected(user.id!, menu.id)"
+                        (change)="toggleMenu(user.id!, menu.id)">
+                        {{ menu.nama_menu }}
+                      </mat-checkbox>
+                    }
+                    @if (allMenus.length === 0) {
+                      <p class="no-data">No menus available</p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                  <button mat-raised-button color="primary" (click)="saveUser(user)">
+                    <mat-icon>save</mat-icon>
+                    Save Changes
+                  </button>
+                  <button mat-raised-button color="warn" (click)="deleteUser(user)">
+                    <mat-icon>delete</mat-icon>
+                    Delete User
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      }
+
+      @if (filteredUsers.length === 0) {
+        <div class="no-users">
+          <mat-icon>person_off</mat-icon>
+          <p>No users found</p>
+        </div>
+      }
+    </div>
+  }
 </div>
