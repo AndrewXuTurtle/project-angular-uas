@@ -51,8 +51,12 @@
               type="submit"
               [disabled]="loading"
               class="full-width">
-              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-              <span *ngIf="!loading">Login</span>
+              @if (loading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              }
+              @if (!loading) {
+                <span>Login</span>
+              }
             </button>
           </div>
         </form>
