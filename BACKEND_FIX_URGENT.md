@@ -102,7 +102,6 @@ public function update(Request $request, $id)
 
     // Validasi
     $validator = Validator::make($request->all(), [
-        'full_name' => 'sometimes|string|max:255',
         'level' => 'sometimes|in:admin,user',
         'is_active' => 'sometimes|boolean',
         'business_unit_ids' => 'sometimes|array',
@@ -121,10 +120,7 @@ public function update(Request $request, $id)
 
     DB::beginTransaction();
     try {
-        // ✅ Update basic fields - SEMUA field!
-        if ($request->has('full_name')) {
-            $user->full_name = $request->full_name;
-        }
+        // ✅ Update basic fields
         if ($request->has('level')) {
             $user->level = $request->level;
         }
@@ -155,7 +151,6 @@ public function update(Request $request, $id)
             'data' => [
                 'id' => $user->id,
                 'username' => $user->username,
-                'full_name' => $user->full_name,
                 'level' => $user->level,
                 'is_active' => $user->is_active,
                 'business_units' => $user->businessUnits,
@@ -264,7 +259,6 @@ curl -X PUT http://localhost:8000/api/users/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer TOKEN" \
   -d '{
-    "full_name":"John Updated",
     "level":"admin",
     "is_active":true,
     "business_unit_ids":[1,2],
@@ -282,7 +276,7 @@ curl -X PUT http://localhost:8000/api/users/1 \
 - [ ] Pastikan `$customer->update($request->only(['name', 'email', 'phone', 'address']))`
 
 ### UserController:
-- [ ] Update `full_name`, `level`, `is_active` dengan `$user->save()`
+- [ ] Update `level`, `is_active` dengan `$user->save()`
 - [ ] Sync `businessUnits()` dengan `sync($request->business_unit_ids)`
 - [ ] Sync `menus()` dengan `sync($request->menu_ids)`
 - [ ] Return data dengan relationships: `$user->load(['businessUnits', 'menus'])`

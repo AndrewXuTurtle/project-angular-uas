@@ -219,7 +219,6 @@ export class UsersComponent implements OnInit {
     if (!editing) return;
 
     const updateData = {
-      full_name: editing.full_name,
       level: editing.level,
       is_active: editing.is_active,
       business_unit_ids: editing.selectedBusinessUnits.map((bu: any) => bu.id),
