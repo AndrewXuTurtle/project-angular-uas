@@ -24,6 +24,78 @@ Frontend sekarang menggunakan **expandable cards** untuk menampilkan dan mengedi
 }
 ```
 
+### GET /api/users/{id}/access - Get User's Current Access
+
+**PENTING**: Endpoint ini digunakan saat user card di-expand untuk load existing business units dan menus.
+
+**Response Expected**:
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "full_name": "John Doe",
+      "level": "admin",
+      "is_active": true
+    },
+    "business_units": [
+      {
+        "id": 1,
+        "business_unit": "Batam"
+      },
+      {
+        "id": 3,
+        "business_unit": "Jakarta"
+      }
+    ],
+    "menus": [
+      {
+        "id": 1,
+        "nama_menu": "Dashboard",
+        "url_link": "/dashboard"
+      },
+      {
+        "id": 3,
+        "nama_menu": "Users",
+        "url_link": "/users"
+      },
+      {
+        "id": 5,
+        "nama_menu": "Reports",
+        "url_link": "/reports"
+      }
+    ]
+  }
+}
+```
+
+**Atau bisa juga GET /api/users mengembalikan business_units dan menus di setiap user**:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "full_name": "John Doe",
+      "level": "admin",
+      "is_active": true,
+      "business_units": [
+        {"id": 1, "business_unit": "Batam"},
+        {"id": 3, "business_unit": "Jakarta"}
+      ],
+      "menus": [
+        {"id": 1, "nama_menu": "Dashboard"},
+        {"id": 3, "nama_menu": "Users"}
+      ]
+    }
+  ]
+}
+```
+
 ## Backend Implementation
 
 ### File: `app/Http/Controllers/Api/UserController.php`
@@ -86,6 +158,58 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'data' => $usersData
+        ]);
+    }
+
+    /**
+     * Get user access (business units and menus)
+     * GET /api/users/{id}/access
+     */
+    public function getAccess($id)
+    {
+        $currentUser = Auth::user();
+        
+        // Only admin can view user access
+        if ($currentUser->role !== 'admin' && $currentUser->level !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        $user = User::with(['businessUnits', 'menus'])->find($id);
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'full_name' => $user->full_name,
+                    'level' => $user->level,
+                    'is_active' => $user->is_active
+                ],
+                'business_units' => $user->businessUnits->map(function($bu) {
+                    return [
+                        'id' => $bu->id,
+                        'business_unit' => $bu->business_unit
+                    ];
+                }),
+                'menus' => $user->menus->map(function($menu) {
+                    return [
+                        'id' => $menu->id,
+                        'nama_menu' => $menu->nama_menu,
+                        'url_link' => $menu->url_link
+                    ];
+                })
+            ]
         ]);
     }
 
@@ -405,7 +529,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['admin'])->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{id}/access', [UserController::class, 'getAccess']);  // Get user's BU & menus
         Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::put('/users/{id}/access', [UserController::class, 'updateAccess']);  // Update access
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
     });
     

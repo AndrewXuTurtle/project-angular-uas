@@ -68,6 +68,7 @@ export interface ApiResponse<T> {
 // User Access structure - Menu permissions only
 export interface UserAccess {
   user: User;
+  business_units?: BusinessUnit[];  // Array of accessible business units
   menus: Menu[];  // Array of accessible menus with permissions
 }
 

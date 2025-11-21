@@ -133,12 +133,41 @@ export class UsersComponent implements OnInit {
     // Initialize editing state for this user
     if (!user.id) return;
     
-    this.editingUser[user.id] = {
-      ...user,
-      selectedBusinessUnits: user.business_units || [],
-      selectedMenus: user.menus || []
-    };
-    console.log('Panel opened for user:', this.editingUser[user.id]);
+    const userId = user.id;
+    console.log('📂 Panel opened for user:', user);
+    
+    // Check if user already has business_units and menus from API
+    if (user.business_units && user.menus) {
+      // Data already loaded from API
+      this.editingUser[userId] = {
+        ...user,
+        selectedBusinessUnits: user.business_units || [],
+        selectedMenus: user.menus || []
+      };
+      console.log('✅ Using existing data:', this.editingUser[userId]);
+    } else {
+      // Need to fetch user access data
+      console.log('🔄 Fetching user access for user:', userId);
+      this.userService.getUserAccess(userId).subscribe({
+        next: (access) => {
+          console.log('✅ User access loaded:', access);
+          this.editingUser[userId] = {
+            ...user,
+            selectedBusinessUnits: access.business_units || [],
+            selectedMenus: access.menus || []
+          };
+        },
+        error: (error) => {
+          console.error('❌ Error loading user access:', error);
+          // Initialize with empty arrays if error
+          this.editingUser[userId] = {
+            ...user,
+            selectedBusinessUnits: [],
+            selectedMenus: []
+          };
+        }
+      });
+    }
   }
 
   toggleBusinessUnit(userId: number, businessUnitId: number): void {
