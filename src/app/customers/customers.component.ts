@@ -160,9 +160,20 @@ export class CustomersComponent implements OnInit {
   }
 
   openCreateDialog(): void {
+    // Check if business unit is selected for admin
+    if (this.isAdmin && !this.selectedBusinessUnitId) {
+      this.snackBar.open('Pilih Business Unit terlebih dahulu', 'Tutup', { duration: 3000 });
+      return;
+    }
+    
     const dialogRef = this.dialog.open(CustomerFormDialogComponent, {
       width: '600px',
-      data: { customer: null }
+      data: { 
+        customer: null,
+        businessUnit: this.isAdmin 
+          ? this.businessUnits.find(bu => bu.id === this.selectedBusinessUnitId)
+          : this.currentBusinessUnit
+      }
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -175,7 +186,12 @@ export class CustomersComponent implements OnInit {
   openEditDialog(customer: Customer): void {
     const dialogRef = this.dialog.open(CustomerFormDialogComponent, {
       width: '600px',
-      data: { customer }
+      data: { 
+        customer,
+        businessUnit: this.isAdmin 
+          ? this.businessUnits.find(bu => bu.id === this.selectedBusinessUnitId)
+          : this.currentBusinessUnit
+      }
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -186,23 +202,50 @@ export class CustomersComponent implements OnInit {
   }
 
   createCustomer(data: CustomerFormData): void {
+    // Validate business unit is selected
+    if (!this.selectedBusinessUnitId) {
+      console.error('❌ No business unit selected!');
+      this.snackBar.open('Silakan pilih business unit terlebih dahulu', 'Tutup', { duration: 3000 });
+      return;
+    }
+
     // Add business unit ID to customer data
     const customerData: any = {
-      ...data,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
       business_unit_id: this.selectedBusinessUnitId
     };
     
-    console.log('➕ Creating customer:', customerData);
+    console.log('➕ Creating customer with data:', {
+      customerData,
+      selectedBusinessUnitId: this.selectedBusinessUnitId,
+      businessUnitType: typeof this.selectedBusinessUnitId,
+      isAdmin: this.isAdmin,
+      currentBusinessUnit: this.currentBusinessUnit
+    });
     
     this.customerService.create(customerData).subscribe({
       next: (response: any) => {
+        console.log('✅ Create customer response:', response);
         if (response.success) {
           this.snackBar.open('Customer berhasil dibuat', 'Tutup', { duration: 3000 });
           this.loadCustomers();
+        } else {
+          console.warn('⚠️ Response success=false:', response);
+          this.snackBar.open(response.message || 'Gagal membuat customer', 'Tutup', { duration: 3000 });
         }
       },
       error: (error: any) => {
-        console.error('❌ Error creating customer:', error);
+        console.error('❌ Error creating customer:', {
+          error,
+          status: error.status,
+          statusText: error.statusText,
+          errorBody: error.error,
+          message: error.error?.message,
+          fullError: error
+        });
         this.snackBar.open(
           error.error?.message || 'Gagal membuat customer',
           'Tutup',
@@ -302,11 +345,22 @@ export class CustomersComponent implements OnInit {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.customer ? 'Edit Customer' : 'Tambah Customer' }}</h2>
     <mat-dialog-content>
+      @if (data.businessUnit) {
+        <div class="bu-info-box">
+          <mat-icon>business</mat-icon>
+          <div>
+            <strong>Business Unit:</strong> {{ data.businessUnit.business_unit }}
+            <p>Customer ini akan tersimpan di business unit ini</p>
+          </div>
+        </div>
+      }
+      
       <form [formGroup]="form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nama</mat-label>
@@ -361,6 +415,38 @@ export class CustomersComponent implements OnInit {
       min-width: 400px;
       padding-top: 20px;
     }
+    
+    .bu-info-box {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #667eea;
+      
+      mat-icon {
+        color: #667eea;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+      
+      div {
+        flex: 1;
+        
+        strong {
+          color: #333;
+          font-size: 14px;
+        }
+        
+        p {
+          margin: 4px 0 0 0;
+          font-size: 12px;
+          color: #666;
+        }
+      }
+    }
   `]
 })
 export class CustomerFormDialogComponent implements OnInit {
@@ -370,7 +456,10 @@ export class CustomerFormDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CustomerFormDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { customer: Customer | null }
+    @Inject(MAT_DIALOG_DATA) public data: { 
+      customer: Customer | null;
+      businessUnit?: any;
+    }
   ) {
     this.form = this.fb.group({
       name: [data.customer?.name || '', Validators.required],
