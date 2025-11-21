@@ -4,7 +4,11 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .navbar-container {
@@ -12,27 +16,40 @@
   align-items: center;
   width: 100%;
   max-width: 100%;
-  padding: 0 8px;
+  padding: 0 16px;
 }
 
 .menu-toggle {
-  margin-right: 8px;
+  margin-right: 12px;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   
   .logo-icon {
     font-size: 28px;
     width: 28px;
     height: 28px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   .app-title {
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     
     @media (max-width: 600px) {
       display: none;
@@ -47,29 +64,37 @@
 .bu-switcher {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: rgba(255, 255, 255, 0.15);
-  padding: 6px 12px;
-  border-radius: 4px;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  padding: 8px 16px;
+  border-radius: 12px;
   margin-right: 16px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
 
   .bu-icon {
-    color: white;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    color: #667eea;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
   }
 
   .bu-select {
-    color: white;
-    font-weight: 500;
+    color: #667eea;
+    font-weight: 600;
 
     ::ng-deep .mat-mdc-select-value {
-      color: white;
+      color: #667eea;
     }
 
     ::ng-deep .mat-mdc-select-arrow {
-      color: white;
+      color: #667eea;
     }
   }
 
@@ -83,21 +108,34 @@
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .user-button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  
+  &:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    transform: translateY(-1px);
+  }
   
   .user-icon {
     font-size: 28px;
     width: 28px;
     height: 28px;
+    color: #667eea;
   }
   
   .user-name {
+    color: #2d3748;
+    font-weight: 600;
+    
     @media (max-width: 768px) {
       display: none;
     }
@@ -105,28 +143,35 @@
   
   .dropdown-icon {
     margin-left: -4px;
+    color: #667eea;
   }
 }
 
 .user-menu-header {
-  padding: 16px;
-  background-color: #f5f5f5;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
   
   .user-info {
     .user-full-name {
-      margin: 0 0 4px 0;
-      font-weight: 600;
+      margin: 0 0 6px 0;
+      font-weight: 700;
       font-size: 16px;
+      color: #2d3748;
     }
     
     .user-email {
       margin: 0;
       font-size: 14px;
-      color: rgba(0, 0, 0, 0.6);
+      color: #718096;
+      font-weight: 500;
     }
   }
 }
 
 ::ng-deep .mat-mdc-menu-panel {
   min-width: 250px;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden;
 }
