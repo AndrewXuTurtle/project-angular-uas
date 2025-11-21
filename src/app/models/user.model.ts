@@ -6,7 +6,8 @@ export interface User {
   full_name?: string;
   level: string; // 'admin' or 'user'
   is_active: boolean;
-  business_unit_id?: number;
+  business_unit_id?: number;  // Single business unit
+  business_unit?: string;      // Business unit name (from join)
   created_at?: Date;
   updated_at?: Date;
 }
@@ -60,4 +61,31 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
+}
+
+// User Access structure - Menu permissions only
+export interface UserAccess {
+  user: User;
+  menus: Menu[];  // Array of accessible menus with permissions
+}
+
+export interface Menu {
+  id: number;
+  nama_menu: string;
+  url_link: string;
+  icon?: string;
+  parent: number | null;
+  active: string;
+  permissions?: {
+    c: boolean;  // Create
+    r: boolean;  // Read
+    u: boolean;  // Update
+    d: boolean;  // Delete
+  };
+}
+
+// For updating user menu access
+export interface UserAccessForm {
+  user_id: number;
+  menu_ids: number[];  // Array of menu IDs user can access
 }

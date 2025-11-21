@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'select-business-unit',
+    loadComponent: () => import('./select-business-unit/select-business-unit.component').then(m => m.SelectBusinessUnitComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'admin',
     loadComponent: () => import('./layout/layout.component').then(m => m.LayoutComponent),
     canActivate: [authGuard],
@@ -26,16 +31,16 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
+        path: 'customers',
+        loadComponent: () => import('./customers/customers.component').then(m => m.CustomersComponent)
+      },
+      {
         path: 'users',
         loadComponent: () => import('./users/users.component').then(m => m.UsersComponent)
       },
       {
         path: 'menus',
         loadComponent: () => import('./menus/menus.component').then(m => m.MenusComponent)
-      },
-      {
-        path: 'privileges',
-        loadComponent: () => import('./privileges/privileges.component').then(m => m.PrivilegesComponent)
       },
       {
         path: 'business-units',

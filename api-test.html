@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Diagnostic Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .login-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+    .btn-test {
+      background: #28a745;
+      color: white;
+      margin: 5px;
+    }
+    .btn-test:hover {
+      background: #218838;
+    }
+    .test-section {
+      margin: 20px 0;
+    }
+    .test-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .result {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 12px;
+    }
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    .status.pending { background: #fff3cd; color: #856404; }
+    .token-display {
+      background: #e9ecef;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      word-break: break-all;
+      margin: 10px 0;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .summary-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .summary-card h3 {
+      font-size: 32px;
+      margin: 10px 0;
+      color: #667eea;
+    }
+    .summary-card p {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔬 API Diagnostic Tool</h1>
+    <p class="subtitle">Test Laravel API Endpoints - Admin & User Flow</p>
+
+    <!-- Login Section -->
+    <div class="login-section">
+      <h2>🔐 Step 1: Login</h2>
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username" value="admin">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button class="btn-primary" onclick="login()">Login</button>
+      </div>
+      <div id="loginResult"></div>
+      <div id="tokenDisplay"></div>
+    </div>
+
+    <!-- Test Buttons -->
+    <div class="test-section">
+      <h2>🧪 Step 2: Test Endpoints</h2>
+      <div class="test-buttons">
+        <button class="btn-test" onclick="testAPI('/api/user')">GET /api/user</button>
+        <button class="btn-test" onclick="testAPI('/api/business-units')">GET /api/business-units (All)</button>
+        <button class="btn-test" onclick="testAPI('/api/menus')">GET /api/menus (All)</button>
+        <button class="btn-test" onclick="testAPI('/api/users')">GET /api/users (Admin)</button>
+        <button class="btn-test" onclick="testAPI('/api/user/business-units')">GET /api/user/business-units (Filtered)</button>
+        <button class="btn-test" onclick="testAPI('/api/user/menus')">GET /api/user/menus (Filtered) ⭐</button>
+        <button class="btn-test" onclick="testUserAccess()">GET /api/users/{id}/access</button>
+      </div>
+      <button class="btn-primary" onclick="testAll()" style="width: 100%; margin-top: 10px;">
+        🚀 Test All Endpoints
+      </button>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary" id="summary" style="display:none;">
+      <div class="summary-card">
+        <p>Total Tests</p>
+        <h3 id="totalTests">0</h3>
+      </div>
+      <div class="summary-card">
+        <p>✅ Passed</p>
+        <h3 id="passedTests" style="color: #28a745;">0</h3>
+      </div>
+      <div class="summary-card">
+        <p>❌ Failed</p>
+        <h3 id="failedTests" style="color: #dc3545;">0</h3>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:8000';
+    let token = '';
+    let userId = null;
+    let testResults = { total: 0, passed: 0, failed: 0 };
+
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      showResult('loginResult', 'pending', 'Logging in...');
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          token = data.data.token;
+          userId = data.data.user.id;
+          showResult('loginResult', 'success', `✅ Login Success! User: ${data.data.user.username} (${data.data.user.level})`);
+          document.getElementById('tokenDisplay').innerHTML = `
+            <div class="token-display">
+              <strong>Token:</strong> ${token.substring(0, 50)}...<br>
+              <strong>User ID:</strong> ${userId}<br>
+              <strong>Level:</strong> ${data.data.user.level}
+            </div>
+          `;
+        } else {
+          showResult('loginResult', 'error', `❌ Login Failed: ${data.message}`);
+        }
+      } catch (error) {
+        showResult('loginResult', 'error', `❌ Error: ${error.message}`);
+      }
+    }
+
+    async function testAPI(endpoint) {
+      if (!token) {
+        alert('Please login first!');
+        return;
+      }
+
+      const resultDiv = document.getElementById('results');
+      const testId = `test-${Date.now()}`;
+      
+      resultDiv.innerHTML += `<div id="${testId}" class="result">
+        <span class="status pending">Testing...</span> ${endpoint}
+      </div>`;
+
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        
+        document.getElementById(testId).innerHTML = `
+          <span class="status ${response.ok ? 'success' : 'error'}">
+            ${response.ok ? '✅ ' + response.status : '❌ ' + response.status}
+          </span>
+          <strong>${endpoint}</strong>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+
+        testResults.total++;
+        if (response.ok) testResults.passed++;
+        else testResults.failed++;
+        updateSummary();
+        
+      } catch (error) {
+        document.getElementById(testId).innerHTML = `
+          <span class="status error">❌ ERROR</span>
+          <strong>${endpoint}</strong>
+          <pre>${error.message}</pre>
+        `;
+        testResults.total++;
+        testResults.failed++;
+        updateSummary();
+      }
+    }
+
+    async function testUserAccess() {
+      if (!userId) {
+        alert('Please login first to get user ID!');
+        return;
+      }
+      await testAPI(`/api/users/${userId}/access`);
+    }
+
+    async function testAll() {
+      document.getElementById('results').innerHTML = '';
+      testResults = { total: 0, passed: 0, failed: 0 };
+      
+      const endpoints = [
+        '/api/user',
+        '/api/business-units',
+        '/api/menus',
+        '/api/users',
+        '/api/user/business-units',
+        '/api/user/menus'
+      ];
+
+      for (const endpoint of endpoints) {
+        await testAPI(endpoint);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Delay between tests
+      }
+
+      if (userId) {
+        await testAPI(`/api/users/${userId}/access`);
+      }
+    }
+
+    function updateSummary() {
+      document.getElementById('summary').style.display = 'grid';
+      document.getElementById('totalTests').textContent = testResults.total;
+      document.getElementById('passedTests').textContent = testResults.passed;
+      document.getElementById('failedTests').textContent = testResults.failed;
+    }
+
+    function showResult(id, status, message) {
+      document.getElementById(id).innerHTML = `
+        <span class="status ${status}">${message}</span>
+      `;
+    }
+  </script>
+</body>
+</html>

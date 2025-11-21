@@ -4,6 +4,7 @@ export interface Menu {
   url_link: string;
   icon?: string;
   parent?: number | null; // Laravel menggunakan 'parent' bukan 'parent_id'
+  active?: string; // 'y' or 'n'
   children?: Menu[];
   allowed?: boolean; // For privileges
   permissions?: {

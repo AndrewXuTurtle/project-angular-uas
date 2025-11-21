@@ -9,16 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';
-import { environment } from '../../../environments/environment';
-
-interface BusinessUnit {
-  id: number;
-  business_unit: string;
-  active: string;
-}
 
 @Component({
   selector: 'app-login',
@@ -32,8 +23,7 @@ interface BusinessUnit {
     MatButtonModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatIconModule,
-    MatSelectModule
+    MatIconModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -41,17 +31,14 @@ interface BusinessUnit {
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   loading = false;
-  returnUrl: string = '';
   hidePassword = true;
-  businessUnits: BusinessUnit[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar,
-    private http: HttpClient
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -61,31 +48,10 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // Load business units for dropdown
-    this.loadBusinessUnits();
-
-    // Inisialisasi form with business_unit_id
+    // Inisialisasi form
     this.loginForm = this.formBuilder.group({
       username: ['', Validators.required],
-      password: ['', Validators.required],
-      business_unit_id: ['', Validators.required]
-    });
-
-    // Get return url dari query params atau default ke dashboard
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
-  }
-
-  loadBusinessUnits(): void {
-    this.http.get<any>(`${environment.apiUrl}/business-units/list`).subscribe({
-      next: (response) => {
-        this.businessUnits = response.data || [];
-      },
-      error: (error) => {
-        console.error('Error loading business units:', error);
-        this.snackBar.open('Failed to load business units', 'Close', {
-          duration: 3000
-        });
-      }
+      password: ['', Validators.required]
     });
   }
 
@@ -101,20 +67,25 @@ export class LoginComponent implements OnInit {
     this.loading = true;
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.loading = false;
         if (response.success) {
-          // Store business unit in localStorage
-          localStorage.setItem('business_unit', JSON.stringify(response.data.business_unit));
+          const user = response.data.user;
           
           this.snackBar.open(response.message || 'Login berhasil!', 'Tutup', {
-            duration: 3000,
+            duration: 2000,
             horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: ['success-snackbar']
+            verticalPosition: 'top'
           });
           
-          this.router.navigate([this.returnUrl]);
+          // LOGIC: Admin bypass BU selection, User must select BU
+          if (user.level === 'admin') {
+            console.log('👑 Admin login - Direct to dashboard');
+            this.router.navigate(['/admin/dashboard']);
+          } else {
+            console.log('👤 User login - Must select business unit');
+            this.router.navigate(['/select-business-unit']);
+          }
         }
       },
       error: (error: any) => {
@@ -123,8 +94,7 @@ export class LoginComponent implements OnInit {
         this.snackBar.open(errorMessage, 'Tutup', {
           duration: 5000,
           horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['error-snackbar']
+          verticalPosition: 'top'
         });
       }
     });

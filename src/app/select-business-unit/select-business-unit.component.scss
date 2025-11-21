@@ -1,0 +1,155 @@
+.select-bu-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.select-bu-card {
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+  mat-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 24px;
+    margin: -16px -16px 16px -16px;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+      }
+
+      .header-text {
+        h2 {
+          margin: 0 0 4px 0;
+          font-size: 24px;
+          font-weight: 500;
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+      }
+    }
+  }
+
+  mat-card-content {
+    padding: 0;
+    min-height: 200px;
+  }
+
+  mat-card-actions {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 16px;
+
+  p {
+    color: #666;
+    margin: 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 16px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #ff9800;
+  }
+
+  p {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+.bu-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 16px !important;
+  height: auto !important;
+
+  &:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+
+  .bu-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 0;
+
+    .bu-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+
+      mat-icon {
+        color: #667eea;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+
+      .bu-text {
+        h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 500;
+          color: #333;
+        }
+
+        p {
+          margin: 4px 0 0 0;
+          font-size: 12px;
+          color: #999;
+        }
+      }
+    }
+
+    .arrow-icon {
+      color: #667eea;
+      transition: transform 0.2s;
+    }
+  }
+
+  &:hover .arrow-icon {
+    transform: translateX(4px);
+  }
+}
+
+mat-divider {
+  margin: 0 !important;
+}

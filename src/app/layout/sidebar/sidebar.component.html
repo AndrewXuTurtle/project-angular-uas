@@ -10,14 +10,15 @@
 <ng-template #menuTemplate let-menu let-level="level">
   <!-- Menu tanpa children -->
   <a 
-    *ngIf="!hasChildren(menu) && menu.url_link && menu.url_link !== '#'"
+    *ngIf="!hasChildren(menu) && menu.route"
     mat-list-item 
-    [routerLink]="menu.url_link"
+    [routerLink]="menu.route"
     routerLinkActive="active-link"
+    (click)="onMenuClick(menu)"
     class="menu-item"
     [style.padding-left.px]="16 + (level * 16)">
-    <mat-icon matListItemIcon>{{ getMenuIcon(menu) }}</mat-icon>
-    <span matListItemTitle>{{ menu.nama_menu }}</span>
+    <mat-icon matListItemIcon>{{ menu.icon }}</mat-icon>
+    <span matListItemTitle>{{ menu.label }}</span>
   </a>
 
   <!-- Menu dengan children (nested) -->
@@ -25,11 +26,12 @@
     *ngIf="hasChildren(menu)"
     class="menu-expansion"
     [class.has-active-child]="hasActiveChild(menu)"
+    [expanded]="true"
     [style.margin-left.px]="level * 16">
     <mat-expansion-panel-header class="menu-header">
       <mat-panel-title class="menu-title">
-        <mat-icon class="menu-icon">{{ getMenuIcon(menu) }}</mat-icon>
-        <span>{{ menu.nama_menu }}</span>
+        <mat-icon class="menu-icon">{{ menu.icon }}</mat-icon>
+        <span>{{ menu.label }}</span>
       </mat-panel-title>
     </mat-expansion-panel-header>
 
@@ -40,3 +42,4 @@
     </mat-nav-list>
   </mat-expansion-panel>
 </ng-template>
+

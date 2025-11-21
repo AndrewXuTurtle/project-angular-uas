@@ -8,8 +8,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BusinessUnit } from '../models/business-unit.model';
 import { BusinessUnitService } from '../services/business-unit.service';
+import { BusinessUnitFormDialogComponent } from './business-unit-form-dialog.component';
 
 @Component({
   selector: 'app-business-units',
@@ -23,7 +25,8 @@ import { BusinessUnitService } from '../services/business-unit.service';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatDialogModule
   ],
   template: `
     <div class="container">
@@ -49,11 +52,6 @@ import { BusinessUnitService } from '../services/business-unit.service';
             <ng-container matColumnDef="business_unit">
               <th mat-header-cell *matHeaderCellDef> Business Unit </th>
               <td mat-cell *matCellDef="let bu"> {{bu.business_unit}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="user_id">
-              <th mat-header-cell *matHeaderCellDef> User ID </th>
-              <td mat-cell *matCellDef="let bu"> {{bu.user_id}} </td>
             </ng-container>
 
             <ng-container matColumnDef="active">
@@ -141,12 +139,13 @@ import { BusinessUnitService } from '../services/business-unit.service';
   `]
 })
 export class BusinessUnitsComponent implements OnInit {
-  displayedColumns = ['id', 'business_unit', 'user_id', 'active', 'actions'];
+  displayedColumns = ['id', 'business_unit', 'active', 'actions'];
   businessUnits: BusinessUnit[] = [];
   loading = false;
 
   constructor(
     private businessUnitService: BusinessUnitService,
+    private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
 
@@ -173,11 +172,45 @@ export class BusinessUnitsComponent implements OnInit {
   }
 
   openCreateDialog(): void {
-    this.showSnackBar('Create business unit dialog - Coming soon!', 'info');
+    const dialogRef = this.dialog.open(BusinessUnitFormDialogComponent, {
+      width: '600px',
+      data: { businessUnit: null, isEdit: false }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.businessUnitService.createBusinessUnit(result).subscribe({
+          next: () => {
+            this.loadBusinessUnits();
+            this.showSnackBar('Business unit created successfully', 'success');
+          },
+          error: (error) => {
+            this.showSnackBar('Error creating business unit: ' + (error.error?.message || error.message), 'error');
+          }
+        });
+      }
+    });
   }
 
   editBusinessUnit(bu: BusinessUnit): void {
-    this.showSnackBar(`Edit business unit: ${bu.business_unit} - Coming soon!`, 'info');
+    const dialogRef = this.dialog.open(BusinessUnitFormDialogComponent, {
+      width: '600px',
+      data: { businessUnit: {...bu}, isEdit: true }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && bu.id) {
+        this.businessUnitService.updateBusinessUnit(bu.id, result).subscribe({
+          next: () => {
+            this.loadBusinessUnits();
+            this.showSnackBar('Business unit updated successfully', 'success');
+          },
+          error: (error) => {
+            this.showSnackBar('Error updating business unit: ' + (error.error?.message || error.message), 'error');
+          }
+        });
+      }
+    });
   }
 
   deleteBusinessUnit(bu: BusinessUnit): void {

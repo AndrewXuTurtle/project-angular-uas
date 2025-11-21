@@ -44,19 +44,6 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Business Unit</mat-label>
-            <mat-select formControlName="business_unit_id" placeholder="Pilih Business Unit">
-              <mat-option *ngFor="let bu of businessUnits" [value]="bu.id">
-                {{ bu.business_unit }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matPrefix>business</mat-icon>
-            <mat-error *ngIf="f['business_unit_id'].hasError('required')">
-              Business Unit wajib dipilih
-            </mat-error>
-          </mat-form-field>
-
           <div class="button-container">
             <button 
               mat-raised-button 
@@ -75,11 +62,10 @@
           <mat-card appearance="outlined" class="hint-card">
             <p class="hint-title">
               <mat-icon>info</mat-icon>
-              Testing Credentials (V2)
+              Testing Credentials
             </p>
-            <p class="hint-text">Username: <strong>admin</strong></p>
-            <p class="hint-text">Password: <strong>Admin123</strong></p>
-            <p class="hint-text">Business Unit: <strong>Pilih dari dropdown</strong></p>
+            <p class="hint-text">Admin: <strong>admin / Admin123</strong></p>
+            <p class="hint-text">User: <strong>user1 / User123</strong></p>
           </mat-card>
         </div>
       </mat-card-content>

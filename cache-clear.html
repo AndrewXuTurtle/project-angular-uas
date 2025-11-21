@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache Clear Helper</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      margin: 5px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    .instructions {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .instructions h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .instructions p {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .kbd {
+      background: #333;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .checklist {
+      margin: 20px 0;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .checklist-item::before {
+      content: '✓';
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      line-height: 24px;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .buttons {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    #countdown {
+      font-size: 48px;
+      font-weight: bold;
+      color: #667eea;
+      text-align: center;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Cache Clear & Reload Helper</h1>
+    <p class="subtitle">Angular Application - Version Reset Tool</p>
+
+    <div class="status success">
+      ✅ Angular dev server is running on http://localhost:4200
+    </div>
+
+    <div class="status info">
+      ℹ️ Code changes have been applied. Browser cache may be showing old version.
+    </div>
+
+    <div class="instructions">
+      <h3>📋 What This Tool Does:</h3>
+      <p>This page will help you clear your browser cache and reload the Angular app with the latest changes.</p>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-item">Login redirects to dashboard (not business unit selection)</div>
+      <div class="checklist-item">Sidebar menus are clickable and load from database</div>
+      <div class="checklist-item">No redirect loop when accessing Users/Business Units/Menus</div>
+      <div class="checklist-item">User form dropdowns show Business Units and Menus</div>
+    </div>
+
+    <div class="instructions">
+      <h3>🔧 Manual Hard Refresh (Recommended):</h3>
+      <p><strong>Mac:</strong> Press <span class="kbd">Cmd + Shift + R</span></p>
+      <p><strong>Windows/Linux:</strong> Press <span class="kbd">Ctrl + Shift + R</span></p>
+      <p><strong>Or:</strong> Press <span class="kbd">Ctrl + F5</span></p>
+    </div>
+
+    <div id="countdown"></div>
+
+    <div class="buttons">
+      <button class="btn btn-primary" onclick="hardRefresh()">🔄 Force Reload Now</button>
+      <a href="http://localhost:4200" class="btn btn-success">🚀 Go to App</a>
+    </div>
+
+    <div class="instructions" style="margin-top: 20px;">
+      <h3>🐛 Still Seeing Old Version?</h3>
+      <p><strong>Chrome/Edge DevTools:</strong></p>
+      <ol style="margin-left: 20px; color: #555;">
+        <li>Right-click → Inspect (or F12)</li>
+        <li>Right-click the refresh button in browser toolbar</li>
+        <li>Select "Empty Cache and Hard Reload"</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Clear localStorage and sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // Auto countdown and redirect
+    let count = 5;
+    const countdownEl = document.getElementById('countdown');
+    
+    function updateCountdown() {
+      if (count > 0) {
+        countdownEl.textContent = count;
+        count--;
+        setTimeout(updateCountdown, 1000);
+      } else {
+        hardRefresh();
+      }
+    }
+
+    // Start countdown on page load
+    // updateCountdown();
+
+    function hardRefresh() {
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+
+      // Clear storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Force reload without cache
+      window.location.href = 'http://localhost:4200?t=' + Date.now();
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 100);
+    }
+
+    // Log status
+    console.log('✅ Cache Clear Helper Loaded');
+    console.log('📦 LocalStorage cleared');
+    console.log('🔄 Ready to reload application');
+  </script>
+</body>
+</html>

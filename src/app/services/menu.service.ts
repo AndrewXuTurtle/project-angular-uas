@@ -15,7 +15,7 @@ export class MenuService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Get all menus
+   * Get all menus (master data - for admin)
    */
   getMenus(): Observable<Menu[]> {
     return this.http.get<ApiResponse<Menu[]>>(this.apiUrl).pipe(
@@ -24,10 +24,21 @@ export class MenuService {
   }
 
   /**
-   * Get user menus based on privileges (allowed=true)
-   * This endpoint filters menus based on user's privilege settings
+   * Get user's accessible menus (filtered by tbl_user_menus)
+   * This returns only menus that user has access to
    */
   getUserMenus(): Observable<Menu[]> {
+    return this.http.get<ApiResponse<Menu[]>>(`${environment.apiUrl}/user/menus`).pipe(
+      map(response => response.data)
+    );
+  }
+
+  /**
+   * Get user menus based on privileges (allowed=true)
+   * This endpoint filters menus based on user's privilege settings
+   * @deprecated Use getUserMenus() instead
+   */
+  getUserMenusWithPrivileges(): Observable<Menu[]> {
     return this.http.get<UserApiResponse<any>>(`${environment.apiUrl}/user/privileges`).pipe(
       map(response => response.data.menus)
     );

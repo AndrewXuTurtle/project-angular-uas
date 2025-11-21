@@ -39,12 +39,10 @@ import { UserFormDialogComponent } from './user-form-dialog.component';
   styleUrl: './users.component.scss'
 })
 export class UsersComponent implements OnInit {
-  displayedColumns: string[] = ['id', 'username', 'level', 'is_active', 'actions'];
+  displayedColumns: string[] = ['id', 'username', 'full_name', 'business_unit', 'level', 'is_active', 'actions'];
   dataSource: MatTableDataSource<User>;
   loading = false;
-  
-  // Menu ID untuk Users (sesuai dengan database)
-  private readonly USERS_MENU_ID = 5;
+  isAdmin = false;
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -59,6 +57,7 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     this.loadUsers();
   }
 
@@ -117,21 +116,15 @@ export class UsersComponent implements OnInit {
 
   openEditDialog(user: User): void {
     const dialogRef = this.dialog.open(UserFormDialogComponent, {
-      width: '600px',
+      width: '700px',
       data: { user: {...user}, isEdit: true }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result && user.id) {
-        this.userService.updateUser(user.id, result).subscribe({
-          next: () => {
-            this.loadUsers();
-            this.showSnackBar('User updated successfully', 'success');
-          },
-          error: (error) => {
-            this.showSnackBar('Error updating user: ' + error.message, 'error');
-          }
-        });
+      if (result) {
+        // Update is already handled inside dialog component
+        // Just reload the list
+        this.loadUsers();
       }
     });
   }
@@ -152,17 +145,17 @@ export class UsersComponent implements OnInit {
     }
   }
 
-  // Permission check methods
+  // Permission check methods - based on admin role
   canCreate(): boolean {
-    return this.authService.canCreate(this.USERS_MENU_ID);
+    return this.isAdmin;
   }
 
   canUpdate(): boolean {
-    return this.authService.canUpdate(this.USERS_MENU_ID);
+    return this.isAdmin;
   }
 
   canDelete(): boolean {
-    return this.authService.canDelete(this.USERS_MENU_ID);
+    return this.isAdmin;
   }
 
   private showSnackBar(message: string, type: 'success' | 'error'): void {

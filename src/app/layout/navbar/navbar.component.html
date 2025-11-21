@@ -19,7 +19,22 @@
     <span class="spacer"></span>
 
     <!-- Business Unit Switcher -->
-    <app-bu-switcher></app-bu-switcher>
+    @if (currentBU && businessUnits.length > 0) {
+      <div class="bu-switcher">
+        <mat-icon class="bu-icon">location_on</mat-icon>
+        <mat-select 
+          [(value)]="selectedBUId" 
+          (selectionChange)="onBUChange($event.value)"
+          class="bu-select"
+          panelClass="bu-select-panel">
+          @for (bu of businessUnits; track bu.id) {
+            <mat-option [value]="bu.id">
+              {{ bu.business_unit }}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
 
     <!-- Right Side Actions -->
     <div class="navbar-actions">

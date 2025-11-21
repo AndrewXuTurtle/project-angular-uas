@@ -4,8 +4,17 @@ import { Router, RouterModule } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Menu } from '../../models/menu.model';
+import { AuthService } from '../../auth/auth.service';
 import { MenuService } from '../../services/menu.service';
+import { Menu } from '../../models/menu.model';
+
+interface MenuItem {
+  label: string;
+  icon: string;
+  route?: string;
+  children?: MenuItem[];
+  menuId?: number;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -21,177 +30,155 @@ import { MenuService } from '../../services/menu.service';
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent implements OnInit {
-  menus: Menu[] = [];
-
-  // Default icons untuk menu berdasarkan nama atau url
-  private defaultIcons: { [key: string]: string } = {
-    'dashboard': 'dashboard',
-    'master': 'storage',
-    'master data': 'storage',
-    'users': 'people',
-    'menus': 'menu_book',
-    'business': 'business',
-    'business units': 'business',
-    'privileges': 'security',
-    'settings': 'settings',
-    'reports': 'assessment'
-  };
+  menus: MenuItem[] = [];
+  isAdmin = false;
 
   constructor(
+    private authService: AuthService,
     private menuService: MenuService,
     public router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadMenus();
+    this.isAdmin = this.authService.isAdmin();
+    
+    // LOGIC: Admin uses static menu, User uses dynamic menu from database
+    if (this.isAdmin) {
+      console.log('👑 Admin - Using static menu structure (full access)');
+      this.buildAdminMenus();
+    } else {
+      console.log('👤 User - Loading dynamic menu from /api/user/menus');
+      console.log('📋 Menus filtered by tbl_user_menus for this user');
+      // User starts with empty menu, will be populated from API
+      this.menus = [];
+      this.loadMenusFromDatabase();
+    }
   }
 
-  loadMenus(): void {
-    // Gunakan endpoint baru untuk mendapatkan menu dengan privilege filtering
+  /**
+   * Load menus dynamically from database
+   * For USER: Load only accessible menus from /api/user/menus (filtered by tbl_user_menus)
+   * This ensures users only see menus they have access to
+   */
+  loadMenusFromDatabase(): void {
+    console.log('📡 Loading user menus from API...');
+    
     this.menuService.getUserMenus().subscribe({
-      next: (menus: any[]) => {
-        // Rebuild tree structure dari flat menu array
-        const menuTree = this.buildMenuTree(menus);
+      next: (userMenus) => {
+        console.log('✅ User menus loaded from API:', userMenus);
+        console.log('📊 User has access to', userMenus.length, 'menus');
         
-        // Convert URL dari Laravel ke Angular routes
-        const convertedMenus = this.convertMenuUrls(menuTree);
-        
-        this.menus = convertedMenus;
-        console.log('Loaded menus from privileges:', this.menus);
-      },
-      error: (error: any) => {
-        console.error('Error loading menus:', error);
-        // Fallback ke mock data jika API error
-        this.loadMockMenus();
-      }
-    });
-  }
-
-  /**
-   * Build proper tree structure from flat menu array
-   * API mengembalikan semua menu (termasuk children) di root level
-   * Kita perlu rebuild agar children nested dengan benar
-   */
-  buildMenuTree(flatMenus: Menu[]): Menu[] {
-    // Create a map untuk akses cepat menu by ID
-    const menuMap = new Map<number, Menu>();
-    
-    // Clone semua menu dan init children array
-    flatMenus.forEach(menu => {
-      if (menu.id !== undefined) {
-        menuMap.set(menu.id, { ...menu, children: [] });
-      }
-    });
-    
-    // Array untuk root menus
-    const rootMenus: Menu[] = [];
-    
-    // Build tree structure
-    menuMap.forEach(menu => {
-      if (menu.parent === null || menu.parent === undefined) {
-        // Ini adalah root menu
-        rootMenus.push(menu);
-      } else {
-        // Ini adalah child menu, tambahkan ke parent
-        const parentMenu = menuMap.get(menu.parent);
-        if (parentMenu) {
-          if (!parentMenu.children) {
-            parentMenu.children = [];
-          }
-          parentMenu.children.push(menu);
+        if (userMenus && userMenus.length > 0) {
+          this.buildMenusFromDatabase(userMenus);
+          console.log('✅ Sidebar built with user\'s accessible menus only');
+        } else {
+          console.warn('⚠️ User has no menu access! Check tbl_user_menus');
+          this.menus = [];
         }
+      },
+      error: (error) => {
+        console.error('❌ Error loading user menus from API:', error);
+        console.error('API Error Details:', error.error);
+        console.log('⚠️ User will see no menus');
+        this.menus = [];
       }
-    });
-    
-    return rootMenus;
-  }
-
-  /**
-   * Convert URL dari Laravel API ke Angular routes (recursive)
-   * Laravel: /dashboard, /master/users
-   * Angular: /admin/dashboard, /admin/users
-   */
-  convertMenuUrls(menus: Menu[]): Menu[] {
-    return menus.map(menu => {
-      const convertedMenu = { ...menu };
-      
-      // Convert parent URL
-      if (convertedMenu.url_link) {
-        convertedMenu.url_link = this.convertSingleUrl(convertedMenu.url_link);
-      }
-      
-      // Convert children URLs recursively
-      if (convertedMenu.children && convertedMenu.children.length > 0) {
-        convertedMenu.children = this.convertMenuUrls(convertedMenu.children);
-      }
-      
-      return convertedMenu;
     });
   }
 
   /**
-   * Convert single URL from Laravel format to Angular format
+   * Build menu structure from database menus
    */
-  convertSingleUrl(url: string): string {
-    if (!url || url === '#') return url;
+  buildMenusFromDatabase(dbMenus: Menu[]): void {
+    // Filter active menus only
+    const activeMenus = dbMenus.filter(m => m.active === 'y' || !m.active);
     
-    // Mapping URL Laravel ke Angular
-    const urlMap: { [key: string]: string } = {
-      '/dashboard': '/admin/dashboard',
-      '/master': '#', // Parent menu, tidak perlu redirect
-      '/master/users': '/admin/users',
-      '/master/menus': '/admin/menus',
-      '/master/business-units': '/admin/business-units',
-      '/settings': '/admin/settings',
-      '/privileges': '/admin/privileges'
+    // Get root menus (parent = null)
+    const rootMenus = activeMenus.filter(m => !m.parent);
+    
+    // Build menu structure
+    this.menus = rootMenus.map(menu => this.buildMenuItem(menu, activeMenus));
+    
+    console.log('Built menu structure:', this.menus);
+  }
+
+  /**
+   * Recursively build menu item with children
+   */
+  buildMenuItem(menu: Menu, allMenus: Menu[]): MenuItem {
+    const children = allMenus
+      .filter(m => m.parent === menu.id)
+      .map(child => this.buildMenuItem(child, allMenus));
+
+    // Fix URL: prepend /admin if not already present
+    let route = menu.url_link;
+    if (route && !route.startsWith('/admin/') && !route.startsWith('/login')) {
+      // Remove leading slash if exists
+      route = route.startsWith('/') ? route.substring(1) : route;
+      // Prepend /admin/
+      route = `/admin/${route}`;
+    }
+
+    return {
+      label: menu.nama_menu,
+      icon: menu.icon || 'menu',
+      route: route || undefined,
+      menuId: menu.id,
+      children: children.length > 0 ? children : undefined
     };
-    
-    // Jika ada di mapping, gunakan mapping
-    if (urlMap[url]) {
-      return urlMap[url];
-    }
-    
-    // Jika URL dimulai dengan /master/, replace dengan /admin/
-    if (url.startsWith('/master/')) {
-      return url.replace('/master/', '/admin/');
-    }
-    
-    // Jika URL dimulai dengan /, tambahkan /admin prefix
-    if (url.startsWith('/') && !url.startsWith('/admin')) {
-      return '/admin' + url;
-    }
-    
-    return url;
   }
 
-  loadMockMenus(): void {
-    // Mock data sebagai fallback
+  /**
+   * Static menu structure for Admin (full access)
+   */
+  buildAdminMenus(): void {
     this.menus = [
       {
-        id: 1,
-        nama_menu: 'Dashboard',
-        url_link: '/admin/dashboard',
-        icon: 'dashboard'
+        label: 'Dashboard',
+        icon: 'dashboard',
+        route: '/admin/dashboard'
       },
       {
-        id: 2,
-        nama_menu: 'Master Data',
-        url_link: '#',
-        icon: 'storage',
-        children: [
-          { id: 4, nama_menu: 'Users', url_link: '/admin/users', icon: 'people' },
-          { id: 5, nama_menu: 'Menus', url_link: '/admin/menus', icon: 'menu_book' },
-          { id: 6, nama_menu: 'Business Units', url_link: '/admin/business-units', icon: 'business' },
-          { id: 7, nama_menu: 'Privileges', url_link: '/admin/privileges', icon: 'security' }
-        ]
+        label: 'Customers',
+        icon: 'people',
+        route: '/admin/customers'
       }
     ];
-    console.log('Using mock menus');
+
+    if (this.isAdmin) {
+      this.menus.push(
+        {
+          label: 'Master Data',
+          icon: 'storage',
+          children: [
+            {
+              label: 'Users',
+              icon: 'person',
+              route: '/admin/users'
+            },
+            {
+              label: 'Business Units',
+              icon: 'business',
+              route: '/admin/business-units'
+            },
+            {
+              label: 'Menus',
+              icon: 'menu_book',
+              route: '/admin/menus'
+            }
+          ]
+        },
+        {
+          label: 'Settings',
+          icon: 'settings',
+          route: '/admin/settings'
+        }
+      );
+    }
   }
 
-  isActive(url: string): boolean {
-    if (!url) return false;
-    return this.router.isActive(url, {
+  isActive(route: string): boolean {
+    if (!route) return false;
+    return this.router.isActive(route, {
       paths: 'subset',
       queryParams: 'subset',
       fragment: 'ignored',
@@ -199,20 +186,17 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  hasChildren(menu: Menu): boolean {
+  hasChildren(menu: MenuItem): boolean {
     return menu.children !== undefined && menu.children.length > 0;
   }
 
-  hasActiveChild(menu: Menu): boolean {
+  hasActiveChild(menu: MenuItem): boolean {
     if (!menu.children) return false;
     
-    // Check direct children
     for (const child of menu.children) {
-      if (child.url_link && this.isActive(child.url_link)) {
+      if (child.route && this.isActive(child.route)) {
         return true;
       }
-      
-      // Check nested children recursively
       if (this.hasActiveChild(child)) {
         return true;
       }
@@ -221,21 +205,11 @@ export class SidebarComponent implements OnInit {
     return false;
   }
 
-  getMenuIcon(menu: Menu): string {
-    // Jika menu sudah punya icon, gunakan itu
-    if (menu.icon) {
-      return menu.icon;
+  onMenuClick(menu: MenuItem): void {
+    console.log('Menu clicked:', menu);
+    if (menu.route) {
+      console.log('Navigating to:', menu.route);
+      this.router.navigate([menu.route]);
     }
-
-    // Cari icon berdasarkan nama menu (case insensitive)
-    const menuName = menu.nama_menu.toLowerCase();
-    for (const key in this.defaultIcons) {
-      if (menuName.includes(key)) {
-        return this.defaultIcons[key];
-      }
-    }
-
-    // Default icon untuk parent dan child
-    return this.hasChildren(menu) ? 'folder' : 'circle';
   }
 }

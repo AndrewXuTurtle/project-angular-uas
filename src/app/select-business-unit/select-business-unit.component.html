@@ -1,0 +1,61 @@
+<div class="select-bu-container">
+  <mat-card class="select-bu-card">
+    <mat-card-header>
+      <div class="header-content">
+        <mat-icon>business</mat-icon>
+        <div class="header-text">
+          <h2>Pilih Business Unit</h2>
+          <p>Silakan pilih lokasi business unit untuk melanjutkan</p>
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Memuat business units...</p>
+        </div>
+      } @else if (businessUnits.length === 0) {
+        <div class="empty-state">
+          <mat-icon>warning</mat-icon>
+          <p>Tidak ada business unit yang tersedia</p>
+          <button mat-raised-button color="warn" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            Logout
+          </button>
+        </div>
+      } @else {
+        <mat-list>
+          @for (bu of businessUnits; track bu.id) {
+            <mat-list-item class="bu-item" (click)="selectBusinessUnit(bu.id)">
+              <div class="bu-content">
+                <div class="bu-info">
+                  <mat-icon matListItemIcon>location_on</mat-icon>
+                  <div class="bu-text">
+                    <h3>{{ bu.business_unit }}</h3>
+                    <p>ID: {{ bu.id }}</p>
+                  </div>
+                </div>
+                
+                @if (loadingBUId === bu.id) {
+                  <mat-spinner diameter="24"></mat-spinner>
+                } @else {
+                  <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+                }
+              </div>
+            </mat-list-item>
+            <mat-divider></mat-divider>
+          }
+        </mat-list>
+      }
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-button color="warn" (click)="logout()" [disabled]="loading">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

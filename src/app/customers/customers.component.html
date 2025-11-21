@@ -1,0 +1,100 @@
+<div class="customers-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        Customers
+        @if (currentBusinessUnit) {
+          <span class="bu-badge">{{ currentBusinessUnit.business_unit }}</span>
+        }
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="actions-bar">
+        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Tambah Customer
+        </button>
+        <button mat-icon-button (click)="loadCustomers()" matTooltip="Refresh">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      @if (loading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Memuat customers...</p>
+        </div>
+      } @else if (customers.length === 0) {
+        <div class="empty-state">
+          <mat-icon>inbox</mat-icon>
+          <p>Belum ada customer</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Tambah Customer Pertama
+          </button>
+        </div>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="customers" class="mat-elevation-z2">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Nama</th>
+              <td mat-cell *matCellDef="let customer">{{ customer.name }}</td>
+            </ng-container>
+
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let customer">{{ customer.email }}</td>
+            </ng-container>
+
+            <!-- Phone Column -->
+            <ng-container matColumnDef="phone">
+              <th mat-header-cell *matHeaderCellDef>Telepon</th>
+              <td mat-cell *matCellDef="let customer">{{ customer.phone }}</td>
+            </ng-container>
+
+            <!-- Address Column -->
+            <ng-container matColumnDef="address">
+              <th mat-header-cell *matHeaderCellDef>Alamat</th>
+              <td mat-cell *matCellDef="let customer">{{ customer.address }}</td>
+            </ng-container>
+
+            <!-- Business Unit Column -->
+            <ng-container matColumnDef="business_unit">
+              <th mat-header-cell *matHeaderCellDef>Lokasi</th>
+              <td mat-cell *matCellDef="let customer">
+                <span class="location-badge">
+                  <mat-icon>location_on</mat-icon>
+                  {{ customer.business_unit?.business_unit || '-' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Aksi</th>
+              <td mat-cell *matCellDef="let customer">
+                @if (isAdmin) {
+                  <button mat-icon-button color="primary" (click)="openEditDialog(customer)" matTooltip="Edit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteCustomer(customer)" matTooltip="Hapus">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                } @else {
+                  <span class="no-action">-</span>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

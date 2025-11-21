@@ -7,8 +7,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Menu } from '../models/menu.model';
 import { MenuService } from '../services/menu.service';
+import { MenuFormDialogComponent } from './menu-form-dialog.component';
 
 @Component({
   selector: 'app-menus',
@@ -21,7 +23,8 @@ import { MenuService } from '../services/menu.service';
     MatTableModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDialogModule
   ],
   template: `
     <div class="container">
@@ -138,6 +141,7 @@ export class MenusComponent implements OnInit {
 
   constructor(
     private menuService: MenuService,
+    private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
 
@@ -169,11 +173,45 @@ export class MenusComponent implements OnInit {
   }
 
   openCreateDialog(): void {
-    this.showSnackBar('Create menu dialog - Coming soon!', 'info');
+    const dialogRef = this.dialog.open(MenuFormDialogComponent, {
+      width: '650px',
+      data: { menu: null, isEdit: false, allMenus: this.menus }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.menuService.createMenu(result).subscribe({
+          next: () => {
+            this.loadMenus();
+            this.showSnackBar('Menu created successfully', 'success');
+          },
+          error: (error) => {
+            this.showSnackBar('Error creating menu: ' + (error.error?.message || error.message), 'error');
+          }
+        });
+      }
+    });
   }
 
   editMenu(menu: Menu): void {
-    this.showSnackBar(`Edit menu: ${menu.nama_menu} - Coming soon!`, 'info');
+    const dialogRef = this.dialog.open(MenuFormDialogComponent, {
+      width: '650px',
+      data: { menu: {...menu}, isEdit: true, allMenus: this.menus }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && menu.id) {
+        this.menuService.updateMenu(menu.id, result).subscribe({
+          next: () => {
+            this.loadMenus();
+            this.showSnackBar('Menu updated successfully', 'success');
+          },
+          error: (error) => {
+            this.showSnackBar('Error updating menu: ' + (error.error?.message || error.message), 'error');
+          }
+        });
+      }
+    });
   }
 
   deleteMenu(menu: Menu): void {

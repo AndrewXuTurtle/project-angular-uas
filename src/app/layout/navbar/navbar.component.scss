@@ -44,6 +44,42 @@
   flex: 1 1 auto;
 }
 
+.bu-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin-right: 16px;
+
+  .bu-icon {
+    color: white;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .bu-select {
+    color: white;
+    font-weight: 500;
+
+    ::ng-deep .mat-mdc-select-value {
+      color: white;
+    }
+
+    ::ng-deep .mat-mdc-select-arrow {
+      color: white;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bu-icon {
+      display: none;
+    }
+  }
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;

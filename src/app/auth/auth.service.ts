@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { User, LoginRequest, LoginResponse, UserPrivileges, ApiResponse, MenuPermission } from '../models/user.model';
+import { User, LoginRequest, LoginResponse } from '../models/user.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -13,42 +13,31 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   
-  private userPrivilegesSubject: BehaviorSubject<UserPrivileges | null>;
-  public userPrivileges: Observable<UserPrivileges | null>;
-  
-  private permissionsMap: Map<number, MenuPermission> = new Map();
-  
   private apiUrl = environment.apiUrl;
 
   constructor(
     private router: Router,
     private http: HttpClient
   ) {
-    this.loadUserFromStorage();
-    this.currentUserSubject = new BehaviorSubject<User | null>(null);
+    // Inisialisasi currentUserSubject dengan data dari localStorage
+    const storedUser = this.loadUserFromStorage();
+    this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
     this.currentUser = this.currentUserSubject.asObservable();
-    
-    this.userPrivilegesSubject = new BehaviorSubject<UserPrivileges | null>(null);
-    this.userPrivileges = this.userPrivilegesSubject.asObservable();
   }
 
   /**
    * Load user data dari localStorage saat service diinisialisasi
    */
-  private loadUserFromStorage(): void {
+  private loadUserFromStorage(): User | null {
     try {
       const userStr = localStorage.getItem('user');
       if (userStr) {
-        const user = JSON.parse(userStr);
-        this.currentUserSubject = new BehaviorSubject<User | null>(user);
-      } else {
-        this.currentUserSubject = new BehaviorSubject<User | null>(null);
+        return JSON.parse(userStr);
       }
     } catch (error) {
       console.error('Error loading user from storage:', error);
-      this.currentUserSubject = new BehaviorSubject<User | null>(null);
     }
-    this.currentUser = this.currentUserSubject.asObservable();
+    return null;
   }
 
   public get currentUserValue(): User | null {
@@ -56,7 +45,7 @@ export class AuthService {
   }
 
   /**
-   * Login via Laravel API
+   * Login via Laravel API (without business unit)
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(
@@ -65,8 +54,8 @@ export class AuthService {
     ).pipe(
       tap(response => {
         if (response.success) {
-          // Simpan token dan user data dengan key 'auth_token' dan 'user'
-          localStorage.setItem('auth_token', response.data.token);
+          // Simpan token dan user data
+          localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
           this.currentUserSubject.next(response.data.user);
         }
@@ -81,9 +70,7 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => {
         // Hapus dari localStorage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('business_unit');
+        localStorage.clear();
         
         // Update subject
         this.currentUserSubject.next(null);
@@ -105,7 +92,7 @@ export class AuthService {
    * Check apakah user sudah login
    */
   isLoggedIn(): boolean {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('token');
     return !!token;
   }
 
@@ -121,74 +108,38 @@ export class AuthService {
    * Get token dari localStorage
    */
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem('token');
   }
 
   /**
-   * Get user privileges and business unit from API
-   * This will be used to build sidebar and check permissions
+   * Get business units yang boleh diakses user
    */
-  getUserPrivileges(): Observable<ApiResponse<UserPrivileges>> {
-    return this.http.get<ApiResponse<UserPrivileges>>(
-      `${this.apiUrl}/user/privileges`
-    ).pipe(
-      tap(response => {
+  getBusinessUnits(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/user/business-units`);
+  }
+
+  /**
+   * Select business unit untuk session
+   */
+  selectBusinessUnit(businessUnitId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/select-business-unit`, {
+      business_unit_id: businessUnitId
+    }).pipe(
+      tap((response: any) => {
         if (response.success) {
-          this.userPrivilegesSubject.next(response.data);
-          
-          // Build permissions map for quick access
-          this.permissionsMap.clear();
-          response.data.menus.forEach(menu => {
-            this.permissionsMap.set(menu.id, menu.permissions);
-          });
+          localStorage.setItem('selectedBU', businessUnitId.toString());
+          localStorage.setItem('currentBU', JSON.stringify(response.data.business_unit));
         }
       })
     );
   }
 
   /**
-   * Check if user has permission for specific menu
-   */
-  hasPermission(menuId: number, permission: 'c' | 'r' | 'u' | 'd'): boolean {
-    const menuPermissions = this.permissionsMap.get(menuId);
-    if (!menuPermissions) return false;
-    return menuPermissions[permission];
-  }
-
-  /**
-   * Check if user can create on specific menu
-   */
-  canCreate(menuId: number): boolean {
-    return this.hasPermission(menuId, 'c');
-  }
-
-  /**
-   * Check if user can read/view on specific menu
-   */
-  canRead(menuId: number): boolean {
-    return this.hasPermission(menuId, 'r');
-  }
-
-  /**
-   * Check if user can update on specific menu
-   */
-  canUpdate(menuId: number): boolean {
-    return this.hasPermission(menuId, 'u');
-  }
-
-  /**
-   * Check if user can delete on specific menu
-   */
-  canDelete(menuId: number): boolean {
-    return this.hasPermission(menuId, 'd');
-  }
-
-  /**
    * Get current business unit from localStorage
    */
-  getCurrentBusinessUnit() {
+  getCurrentBusinessUnit(): any {
     try {
-      const buStr = localStorage.getItem('business_unit');
+      const buStr = localStorage.getItem('currentBU');
       if (buStr) {
         return JSON.parse(buStr);
       }
@@ -199,11 +150,10 @@ export class AuthService {
   }
 
   /**
-   * Switch business unit (requires re-authentication with new BU)
+   * Get selected business unit ID
    */
-  switchBusinessUnit(businessUnitId: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/switch-business-unit`, {
-      business_unit_id: businessUnitId
-    });
+  getSelectedBusinessUnitId(): number | null {
+    const id = localStorage.getItem('selectedBU');
+    return id ? parseInt(id) : null;
   }
 }
