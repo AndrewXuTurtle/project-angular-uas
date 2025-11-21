@@ -60,12 +60,10 @@ export class DashboardComponent implements OnInit {
     // Load real data from APIs
     Promise.all([
       this.userService.getAll().toPromise(),
-      this.menuService.getAll().toPromise(),
-      this.businessUnitService.getAll().toPromise()
-    ]).then(([usersResponse, menusResponse, busResponse]) => {
+      this.menuService.getMenus().toPromise(),
+      this.businessUnitService.getBusinessUnits().toPromise()
+    ]).then(([usersResponse, menus, businessUnits]) => {
       const users = usersResponse?.data || [];
-      const menus = menusResponse?.data || [];
-      const businessUnits = busResponse?.data || [];
       
       const activeUsers = users.filter((u: any) => u.is_active === 1).length;
       const inactiveUsers = users.length - activeUsers;
@@ -81,7 +79,7 @@ export class DashboardComponent implements OnInit {
         },
         {
           title: 'Business Units',
-          value: businessUnits.length,
+          value: businessUnits?.length || 0,
           icon: 'business',
           color: '#f093fb',
           trend: 'stable',
@@ -89,7 +87,7 @@ export class DashboardComponent implements OnInit {
         },
         {
           title: 'Menu Items',
-          value: menus.length,
+          value: menus?.length || 0,
           icon: 'menu_book',
           color: '#4facfe',
           trend: 'up',
