@@ -1,155 +1,257 @@
 <div class="users-container">
-  <!-- Page Header -->
+  <!-- Page Header with Stats -->
   <div class="page-header">
-    <div>
-      <h1 class="page-title">Users Management</h1>
-      <p class="page-subtitle">Manage system users with expandable cards</p>
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">groups</mat-icon>
+          Users Management
+        </h1>
+        <p class="page-subtitle">Manage system users, roles, and permissions</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" class="add-btn">
+        <mat-icon>person_add</mat-icon>
+        Add New User
+      </button>
     </div>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Add User
-    </button>
+    
+    <!-- Quick Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <mat-icon class="stat-icon total">people</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ users.length }}</span>
+          <span class="stat-label">Total Users</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon class="stat-icon admin">admin_panel_settings</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ getAdminCount() }}</span>
+          <span class="stat-label">Administrators</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon class="stat-icon active">check_circle</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ getActiveCount() }}</span>
+          <span class="stat-label">Active Users</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon class="stat-icon inactive">block</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ getInactiveCount() }}</span>
+          <span class="stat-label">Inactive Users</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Search -->
-  <mat-form-field class="search-field" appearance="outline">
-    <mat-label>Search users</mat-label>
-    <input matInput [(ngModel)]="searchText" (ngModelChange)="applyFilter()" placeholder="Search by ID, username, or name...">
-    <mat-icon matPrefix>search</mat-icon>
-  </mat-form-field>
+  <!-- Search and Filters -->
+  <div class="controls-bar">
+    <mat-form-field class="search-field" appearance="outline">
+      <mat-label>Search users</mat-label>
+      <input matInput [(ngModel)]="searchText" (ngModelChange)="applyFilter()" placeholder="Search by ID, username...">
+      <mat-icon matPrefix>search</mat-icon>
+      @if (searchText) {
+        <button matSuffix mat-icon-button (click)="searchText = ''; applyFilter()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+    
+    <div class="filter-group">
+      <mat-button-toggle-group [(value)]="filterLevel" (change)="applyFilter()" class="level-filter">
+        <mat-button-toggle value="all">All</mat-button-toggle>
+        <mat-button-toggle value="admin">Admin</mat-button-toggle>
+        <mat-button-toggle value="user">User</mat-button-toggle>
+      </mat-button-toggle-group>
+      
+      <mat-button-toggle-group [(value)]="filterActive" (change)="applyFilter()" class="status-filter">
+        <mat-button-toggle value="all">All Status</mat-button-toggle>
+        <mat-button-toggle value="active">Active</mat-button-toggle>
+        <mat-button-toggle value="inactive">Inactive</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </div>
 
   <!-- Loading Indicator -->
   @if (loading) {
     <div class="loading-container">
-      <mat-spinner></mat-spinner>
+      <mat-spinner diameter="60"></mat-spinner>
       <p>Loading users...</p>
     </div>
   }
 
-  <!-- User Cards -->
+  <!-- User Cards Grid -->
   @if (!loading) {
-    <div class="cards-container">
+    <div class="users-grid">
       @for (user of filteredUsers; track user.id) {
-        <mat-expansion-panel (opened)="onPanelOpened(user)" class="user-card">
-          <!-- Card Header - Collapsed View -->
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <div class="card-header-content">
-                <div class="user-identity">
-                  <mat-icon class="user-icon">person</mat-icon>
-                  <div class="user-basic-info">
-                    <span class="user-id">ID: {{ user.id }}</span>
-                    <span class="user-username">{{ user.username }}</span>
-                  </div>
-                </div>
-                <div class="user-status-chips">
-                  <mat-chip [class]="user.level === 'admin' ? 'chip-admin' : 'chip-user'">
-                    {{ user.level }}
-                  </mat-chip>
-                  <mat-chip [class]="user.is_active ? 'chip-active' : 'chip-inactive'">
-                    {{ user.is_active ? 'Active' : 'Inactive' }}
-                  </mat-chip>
-                </div>
-              </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-
-          <!-- Card Content - Expanded View -->
-          <div class="card-content">
-            @if (editingUser[user.id!]) {
-              <div class="edit-form">
-                <!-- Basic Info Section -->
-                <div class="form-section">
-                  <h3 class="section-title">
-                    <mat-icon>info</mat-icon>
-                    Basic Information
-                  </h3>
-                  <div class="form-grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Username</mat-label>
-                      <input matInput [value]="user.username" disabled>
-                      <mat-hint>Username cannot be changed</mat-hint>
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline">
-                      <mat-label>Level</mat-label>
-                      <mat-select [(ngModel)]="editingUser[user.id!].level">
-                        <mat-option value="admin">Admin</mat-option>
-                        <mat-option value="user">User</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-
-                  <div class="form-row">
-                    <mat-checkbox [(ngModel)]="editingUser[user.id!].is_active">
-                      Active Status
-                    </mat-checkbox>
-                  </div>
-                </div>
-
-                <!-- Business Units Section -->
-                <div class="form-section">
-                  <h3 class="section-title">
-                    <mat-icon>business</mat-icon>
-                    Business Units Access
-                  </h3>
-                  <div class="checkbox-grid">
-                    @for (bu of businessUnits; track bu.id) {
-                      <mat-checkbox 
-                        [checked]="isBusinessUnitSelected(user.id!, bu.id)"
-                        (change)="toggleBusinessUnit(user.id!, bu.id)">
-                        {{ bu.business_unit }}
-                      </mat-checkbox>
-                    }
-                    @if (businessUnits.length === 0) {
-                      <p class="no-data">No business units available</p>
-                    }
-                  </div>
-                </div>
-
-                <!-- Menus Section -->
-                <div class="form-section">
-                  <h3 class="section-title">
-                    <mat-icon>menu</mat-icon>
-                    Menu Access
-                  </h3>
-                  <div class="checkbox-grid">
-                    @for (menu of allMenus; track menu.id) {
-                      <mat-checkbox 
-                        [checked]="isMenuSelected(user.id!, menu.id)"
-                        (change)="toggleMenu(user.id!, menu.id)">
-                        {{ menu.nama_menu }}
-                      </mat-checkbox>
-                    }
-                    @if (allMenus.length === 0) {
-                      <p class="no-data">No menus available</p>
-                    }
-                  </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                  <button mat-raised-button color="primary" (click)="saveUser(user)">
-                    <mat-icon>save</mat-icon>
-                    Save Changes
-                  </button>
-                  <button mat-raised-button color="warn" (click)="deleteUser(user)">
-                    <mat-icon>delete</mat-icon>
-                    Delete User
-                  </button>
-                </div>
-              </div>
-            }
+        <mat-card class="user-card">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="user-avatar">
+              <mat-icon>{{ user.level === 'admin' ? 'admin_panel_settings' : 'person' }}</mat-icon>
+            </div>
+            <div class="user-badges">
+              <span class="badge level-badge" [class.admin]="user.level === 'admin'">
+                {{ user.level }}
+              </span>
+              <span class="badge status-badge" [class.active]="user.is_active">
+                {{ user.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
           </div>
-        </mat-expansion-panel>
+
+          <!-- User Info -->
+          <div class="card-body">
+            <h3 class="user-name">{{ user.username }}</h3>
+            <p class="user-id">ID: {{ user.id }}</p>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="card-actions">
+            <button mat-button (click)="onPanelOpened(user); expandedUserId = user.id!" class="expand-btn">
+              <mat-icon>edit</mat-icon>
+              Edit Details
+            </button>
+          </div>
+        </mat-card>
       }
 
       @if (filteredUsers.length === 0) {
-        <div class="no-users">
-          <mat-icon>person_off</mat-icon>
-          <p>No users found</p>
+        <div class="no-users-message">
+          <mat-icon>search_off</mat-icon>
+          <h3>No users found</h3>
+          <p>Try adjusting your search or filters</p>
         </div>
       }
+    </div>
+  }
+
+  <!-- Edit Panel Overlay -->
+  @if (expandedUserId && editingUser[expandedUserId]) {
+    <div class="edit-overlay" (click)="closeEditPanel()">
+      <div class="edit-panel" (click)="$event.stopPropagation()">
+        <div class="panel-header">
+          <h2>
+            <mat-icon>edit</mat-icon>
+            Edit User: {{ getUserById(expandedUserId)?.username }}
+          </h2>
+          <button mat-icon-button (click)="closeEditPanel()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="panel-content">
+          <!-- Basic Info Section -->
+          <div class="edit-section">
+            <div class="section-header">
+              <mat-icon>info</mat-icon>
+              <h3>Basic Information</h3>
+            </div>
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Username</mat-label>
+                <input matInput [value]="getUserById(expandedUserId)?.username" disabled>
+                <mat-hint>Username cannot be changed</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Level</mat-label>
+                <mat-select [(ngModel)]="editingUser[expandedUserId].level">
+                  <mat-option value="admin">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    Administrator
+                  </mat-option>
+                  <mat-option value="user">
+                    <mat-icon>person</mat-icon>
+                    User
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-slide-toggle 
+                [(ngModel)]="editingUser[expandedUserId].is_active"
+                color="primary"
+                class="status-toggle">
+                <span class="toggle-label">
+                  <mat-icon>{{ editingUser[expandedUserId].is_active ? 'check_circle' : 'cancel' }}</mat-icon>
+                  {{ editingUser[expandedUserId].is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </mat-slide-toggle>
+            </div>
+          </div>
+
+          <!-- Business Units Section -->
+          <div class="edit-section">
+            <div class="section-header">
+              <mat-icon>business</mat-icon>
+              <h3>Business Units Access</h3>
+              <span class="count-badge">{{ getSelectedBUCount(expandedUserId) }} selected</span>
+            </div>
+            <div class="checkbox-grid">
+              @for (bu of businessUnits; track bu.id) {
+                <mat-checkbox 
+                  [checked]="isBusinessUnitSelected(expandedUserId, bu.id)"
+                  (change)="toggleBusinessUnit(expandedUserId, bu.id)"
+                  color="primary">
+                  {{ bu.business_unit }}
+                </mat-checkbox>
+              }
+              @if (businessUnits.length === 0) {
+                <p class="no-data">
+                  <mat-icon>inbox</mat-icon>
+                  No business units available
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Menus Section -->
+          <div class="edit-section">
+            <div class="section-header">
+              <mat-icon>menu</mat-icon>
+              <h3>Menu Access</h3>
+              <span class="count-badge">{{ getSelectedMenuCount(expandedUserId) }} selected</span>
+            </div>
+            <div class="checkbox-grid">
+              @for (menu of allMenus; track menu.id) {
+                <mat-checkbox 
+                  [checked]="isMenuSelected(expandedUserId, menu.id)"
+                  (change)="toggleMenu(expandedUserId, menu.id)"
+                  color="primary">
+                  <mat-icon class="menu-icon">{{ menu.icon || 'label' }}</mat-icon>
+                  {{ menu.nama_menu }}
+                </mat-checkbox>
+              }
+              @if (allMenus.length === 0) {
+                <p class="no-data">
+                  <mat-icon>inbox</mat-icon>
+                  No menus available
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Actions -->
+        <div class="panel-actions">
+          <button mat-button (click)="closeEditPanel()" class="cancel-btn">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+          <button mat-raised-button color="warn" (click)="deleteUser(getUserById(expandedUserId)!); closeEditPanel()">
+            <mat-icon>delete</mat-icon>
+            Delete User
+          </button>
+          <button mat-raised-button color="primary" (click)="saveUser(getUserById(expandedUserId)!)">
+            <mat-icon>save</mat-icon>
+            Save Changes
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

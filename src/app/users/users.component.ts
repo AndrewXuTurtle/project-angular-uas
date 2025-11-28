@@ -14,6 +14,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
 import { BusinessUnitService } from '../services/business-unit.service';
@@ -40,7 +42,9 @@ import { UserFormDialogComponent } from './user-form-dialog.component';
     MatSnackBarModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatButtonToggleModule,
+    MatSlideToggleModule
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
@@ -52,8 +56,13 @@ export class UsersComponent implements OnInit {
   isAdmin = false;
   searchText = '';
   
+  // Filters
+  filterLevel: 'all' | 'admin' | 'user' = 'all';
+  filterActive: 'all' | 'active' | 'inactive' = 'all';
+  
   // For expanded card editing - keyed by user ID
   editingUser: { [key: number]: any } = {};
+  expandedUserId: number | null = null;
   businessUnits: any[] = [];
   allMenus: any[] = [];
   
@@ -117,16 +126,31 @@ export class UsersComponent implements OnInit {
   }
 
   applyFilter(): void {
+    let filtered = [...this.users];
+    
+    // Apply search text filter
     const search = this.searchText.toLowerCase().trim();
-    if (!search) {
-      this.filteredUsers = [...this.users];
-    } else {
-      this.filteredUsers = this.users.filter(user => 
+    if (search) {
+      filtered = filtered.filter(user => 
         user.username?.toLowerCase().includes(search) ||
         user.full_name?.toLowerCase().includes(search) ||
         user.id?.toString().includes(search)
       );
     }
+    
+    // Apply level filter
+    if (this.filterLevel !== 'all') {
+      filtered = filtered.filter(user => user.level === this.filterLevel);
+    }
+    
+    // Apply active status filter
+    if (this.filterActive === 'active') {
+      filtered = filtered.filter(user => user.is_active);
+    } else if (this.filterActive === 'inactive') {
+      filtered = filtered.filter(user => !user.is_active);
+    }
+    
+    this.filteredUsers = filtered;
   }
 
   onPanelOpened(user: User): void {
@@ -307,5 +331,35 @@ export class UsersComponent implements OnInit {
       verticalPosition: 'top',
       panelClass: [type === 'success' ? 'success-snackbar' : 'error-snackbar']
     });
+  }
+
+  // Stats helper methods
+  getAdminCount(): number {
+    return this.users.filter(u => u.level === 'admin').length;
+  }
+
+  getActiveCount(): number {
+    return this.users.filter(u => u.is_active).length;
+  }
+
+  getInactiveCount(): number {
+    return this.users.filter(u => !u.is_active).length;
+  }
+
+  // Edit panel methods
+  getUserById(id: number): User | undefined {
+    return this.users.find(u => u.id === id);
+  }
+
+  closeEditPanel(): void {
+    this.expandedUserId = null;
+  }
+
+  getSelectedBUCount(userId: number): number {
+    return this.editingUser[userId]?.selectedBusinessUnits?.length || 0;
+  }
+
+  getSelectedMenuCount(userId: number): number {
+    return this.editingUser[userId]?.selectedMenus?.length || 0;
   }
 }
