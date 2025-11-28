@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { BusinessUnit } from '../models/business-unit.model';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-business-unit-form-dialog',
@@ -103,6 +104,7 @@ export class BusinessUnitFormDialogComponent {
 
   constructor(
     private fb: FormBuilder,
+    private authService: AuthService,
     private dialogRef: MatDialogRef<BusinessUnitFormDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { businessUnit: BusinessUnit | null; isEdit: boolean }
   ) {
@@ -114,7 +116,12 @@ export class BusinessUnitFormDialogComponent {
 
   onSave(): void {
     if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
+      const formData = {
+        ...this.form.value,
+        user_id: this.authService.getCurrentUserId()
+      };
+      console.log('📝 Form data with user_id:', formData);
+      this.dialogRef.close(formData);
     }
   }
 

@@ -235,6 +235,8 @@ export class UsersComponent implements OnInit {
       next: (response) => {
         console.log('✅ User update response:', response);
         this.showSnackBar('User updated successfully', 'success');
+        // Auto close the expanded card
+        delete this.editingUser[user.id!];
         this.loadUsers();
       },
       error: (error) => {

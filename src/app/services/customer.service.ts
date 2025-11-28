@@ -15,10 +15,16 @@ export class CustomerService {
   /**
    * Get all customers (filtered by selected business unit)
    */
-  getAll(businessUnitId?: number): Observable<ApiResponse<Customer[]>> {
+  getAll(businessUnitId?: number, sortBy?: string, sortDir?: string): Observable<ApiResponse<Customer[]>> {
     const params: any = {};
     if (businessUnitId) {
       params.business_unit_id = businessUnitId;
+    }
+    if (sortBy) {
+      params.sort_by = sortBy;
+    }
+    if (sortDir) {
+      params.sort_dir = sortDir;
     }
     return this.http.get<ApiResponse<Customer[]>>(this.apiUrl, { params });
   }

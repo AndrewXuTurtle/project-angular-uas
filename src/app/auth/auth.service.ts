@@ -156,4 +156,11 @@ export class AuthService {
     const id = localStorage.getItem('selectedBU');
     return id ? parseInt(id) : null;
   }
+
+  /**
+   * Get current user ID
+   */
+  getCurrentUserId(): number | null {
+    return this.currentUserValue?.id || null;
+  }
 }

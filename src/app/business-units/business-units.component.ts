@@ -179,13 +179,37 @@ export class BusinessUnitsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        console.log('📤 Data yang akan dikirim ke API:', result);
+        console.log('📤 API URL:', `${this.businessUnitService['apiUrl']}`);
+        
         this.businessUnitService.createBusinessUnit(result).subscribe({
-          next: () => {
+          next: (response) => {
+            console.log('✅ Response sukses:', response);
             this.loadBusinessUnits();
             this.showSnackBar('Business unit created successfully', 'success');
           },
           error: (error) => {
-            this.showSnackBar('Error creating business unit: ' + (error.error?.message || error.message), 'error');
+            console.error('❌ Error detail:', {
+              status: error.status,
+              statusText: error.statusText,
+              message: error.error?.message,
+              errors: error.error?.errors,
+              fullError: error.error
+            });
+            
+            let errorMessage = 'Error creating business unit';
+            if (error.error?.errors) {
+              const errorDetails = Object.entries(error.error.errors)
+                .map(([field, messages]: [string, any]) => `${field}: ${messages.join(', ')}`)
+                .join('; ');
+              errorMessage += ': ' + errorDetails;
+            } else if (error.error?.message) {
+              errorMessage += ': ' + error.error.message;
+            } else {
+              errorMessage += ': ' + error.message;
+            }
+            
+            this.showSnackBar(errorMessage, 'error');
           }
         });
       }

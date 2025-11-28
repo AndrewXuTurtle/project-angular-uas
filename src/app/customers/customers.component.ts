@@ -1,8 +1,8 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule, PageEvent, MatPaginator } from '@angular/material/paginator';
 import { SelectionModel } from '@angular/cdk/collections';
 import { CustomerService } from '../services/customer.service';
 import { BusinessUnitService } from '../services/business-unit.service';
@@ -37,13 +38,16 @@ import { Customer, CustomerFormData } from '../models/customer.model';
     MatInputModule,
     MatCheckboxModule,
     MatTooltipModule,
-    MatSelectModule
+    MatSelectModule,
+    MatPaginatorModule
   ],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })
-export class CustomersComponent implements OnInit {
+export class CustomersComponent implements OnInit, AfterViewInit {
   customers: Customer[] = [];
+  filteredCustomers: Customer[] = [];
+  paginatedCustomers: Customer[] = [];
   displayedColumns: string[] = ['select', 'name', 'email', 'phone', 'address', 'actions'];
   selection = new SelectionModel<Customer>(true, []);
   loading = false;
@@ -51,6 +55,20 @@ export class CustomersComponent implements OnInit {
   isAdmin = false;
   businessUnits: any[] = [];
   selectedBusinessUnitId: number | null = null;
+  
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
+  // Sorting (server-side)
+  sortActive: string = 'created_at';
+  sortDirection: 'asc' | 'desc' = 'desc';
+  
+  // Filtering (client-side - real-time)
+  searchText: string = '';
+  
+  // Pagination (client-side)
+  pageSize = 10;
+  pageIndex = 0;
+  pageSizeOptions = [10, 20, 30, 50];
 
   constructor(
     private customerService: CustomerService,
@@ -63,6 +81,9 @@ export class CustomersComponent implements OnInit {
   ngOnInit(): void {
     this.currentBusinessUnit = this.authService.getCurrentBusinessUnit();
     this.isAdmin = this.authService.isAdmin();
+  }
+  
+  ngAfterViewInit(): void {
     console.log('🔍 Customers Component Init:', {
       isAdmin: this.isAdmin,
       currentUser: this.authService.getCurrentUser(),
@@ -112,8 +133,8 @@ export class CustomersComponent implements OnInit {
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected(): boolean {
     const numSelected = this.selection.selected.length;
-    const numRows = this.customers.length;
-    return numSelected === numRows;
+    const numRows = this.paginatedCustomers.length;
+    return numSelected === numRows && numRows > 0;
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
@@ -122,7 +143,7 @@ export class CustomersComponent implements OnInit {
       this.selection.clear();
       return;
     }
-    this.selection.select(...this.customers);
+    this.selection.select(...this.paginatedCustomers);
   }
 
   /** The label for the checkbox on the passed row */
@@ -133,17 +154,74 @@ export class CustomersComponent implements OnInit {
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.id}`;
   }
 
+  /** Handle server-side sorting */
+  handleSort(column: string): void {
+    if (this.sortActive === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortActive = column;
+      this.sortDirection = 'asc';
+    }
+    
+    console.log('🔄 Sort changed:', this.sortActive, this.sortDirection);
+    this.loadCustomers();
+  }
+
+  /** Handle client-side real-time search/filter */
+  applyFilter(): void {
+    const searchLower = this.searchText.toLowerCase().trim();
+    
+    if (!searchLower) {
+      this.filteredCustomers = [...this.customers];
+    } else {
+      this.filteredCustomers = this.customers.filter(customer => {
+        return (
+          customer.name?.toLowerCase().includes(searchLower) ||
+          customer.email?.toLowerCase().includes(searchLower) ||
+          customer.phone?.toLowerCase().includes(searchLower) ||
+          customer.address?.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+    
+    // Reset to first page when filtering
+    this.pageIndex = 0;
+    this.updatePaginatedCustomers();
+  }
+
+  /** Handle client-side pagination */
+  onPageChange(event: any): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.updatePaginatedCustomers();
+  }
+
+  /** Update paginated data for current page */
+  updatePaginatedCustomers(): void {
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedCustomers = this.filteredCustomers.slice(startIndex, endIndex);
+  }
+
   loadCustomers(): void {
     this.loading = true;
-    this.selection.clear(); // Clear selection when reloading
+    this.selection.clear();
     
-    console.log('📡 Loading customers for BU ID:', this.selectedBusinessUnitId);
+    console.log('📡 Loading customers:', {
+      businessUnitId: this.selectedBusinessUnitId,
+      sort: `${this.sortActive} ${this.sortDirection}`
+    });
     
-    this.customerService.getAll(this.selectedBusinessUnitId || undefined).subscribe({
+    this.customerService.getAll(
+      this.selectedBusinessUnitId || undefined,
+      this.sortActive,
+      this.sortDirection
+    ).subscribe({
       next: (response: any) => {
         this.loading = false;
         if (response.success) {
           this.customers = response.data;
+          this.applyFilter(); // Apply filter after loading
           console.log('✅ Loaded', this.customers.length, 'customers');
         }
       },
@@ -158,6 +236,8 @@ export class CustomersComponent implements OnInit {
       }
     });
   }
+
+
 
   openCreateDialog(): void {
     // Check if business unit is selected for admin

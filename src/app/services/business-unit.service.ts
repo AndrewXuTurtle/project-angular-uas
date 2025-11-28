@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { BusinessUnit, ApiResponse } from '../models/business-unit.model';
 import { environment } from '../../environments/environment';
 
@@ -53,8 +53,15 @@ export class BusinessUnitService {
    * Create new business unit
    */
   createBusinessUnit(businessUnit: Partial<BusinessUnit>): Observable<BusinessUnit> {
+    console.log('🔵 Service: Sending POST request to:', this.apiUrl);
+    console.log('🔵 Service: Request body:', businessUnit);
+    
     return this.http.post<ApiResponse<BusinessUnit>>(this.apiUrl, businessUnit).pipe(
-      map(response => response.data)
+      tap(response => console.log('🔵 Service: Raw API response:', response)),
+      map(response => {
+        console.log('🔵 Service: Mapped data:', response.data);
+        return response.data;
+      })
     );
   }
 
