@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { SelectionModel } from '@angular/cdk/collections';
 import { CustomerService } from '../services/customer.service';
 import { BusinessUnitService } from '../services/business-unit.service';
@@ -37,13 +38,15 @@ import { Customer, CustomerFormData } from '../models/customer.model';
     MatInputModule,
     MatCheckboxModule,
     MatTooltipModule,
-    MatSelectModule
+    MatSelectModule,
+    MatPaginatorModule
   ],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })
 export class CustomersComponent implements OnInit {
   customers: Customer[] = [];
+  paginatedCustomers: Customer[] = [];
   displayedColumns: string[] = ['select', 'name', 'email', 'phone', 'address', 'actions'];
   selection = new SelectionModel<Customer>(true, []);
   loading = false;
@@ -51,6 +54,10 @@ export class CustomersComponent implements OnInit {
   isAdmin = false;
   businessUnits: any[] = [];
   selectedBusinessUnitId: number | null = null;
+  
+  // Pagination
+  pageSize = 10;
+  pageIndex = 0;
 
   constructor(
     private customerService: CustomerService,
@@ -144,6 +151,8 @@ export class CustomersComponent implements OnInit {
         this.loading = false;
         if (response.success) {
           this.customers = response.data;
+          this.pageIndex = 0; // Reset to first page
+          this.updatePaginatedCustomers();
           console.log('✅ Loaded', this.customers.length, 'customers');
         }
       },
@@ -301,16 +310,27 @@ export class CustomersComponent implements OnInit {
   }
 
   deleteCustomer(customer: Customer): void {
+    // Admin can delete without selecting business unit
     if (confirm(`Yakin ingin menghapus customer ${customer.name}?`)) {
+      console.log('🗑️ Deleting customer:', { id: customer.id, name: customer.name, isAdmin: this.isAdmin });
+      
       this.customerService.delete(customer.id).subscribe({
         next: (response: any) => {
+          console.log('✅ Delete response:', response);
           if (response.success) {
             this.snackBar.open('Customer berhasil dihapus', 'Tutup', { duration: 3000 });
-            this.loadCustomers();
+            // If admin and no BU selected yet, don't reload (will show empty anyway)
+            if (!this.isAdmin || this.selectedBusinessUnitId) {
+              this.loadCustomers();
+            } else {
+              // Remove from local array for admin without BU selected
+              this.customers = this.customers.filter(c => c.id !== customer.id);
+              this.updatePaginatedCustomers();
+            }
           }
         },
         error: (error: any) => {
-          console.error('Error deleting customer:', error);
+          console.error('❌ Error deleting customer:', error);
           this.snackBar.open(
             error.error?.message || 'Gagal menghapus customer',
             'Tutup',
@@ -334,22 +354,34 @@ export class CustomersComponent implements OnInit {
 
     if (confirm(confirmMessage)) {
       const ids = this.selection.selected.map(c => c.id);
+      console.log('🗑️ Bulk deleting customers:', { ids, count: selectedCount, isAdmin: this.isAdmin });
+      
       this.loading = true;
       this.customerService.bulkDelete(ids).subscribe({
         next: (response: any) => {
           this.loading = false;
+          console.log('✅ Bulk delete response:', response);
           if (response.success) {
             this.snackBar.open(
               `${selectedCount} customer berhasil dihapus`,
               'Tutup',
               { duration: 3000 }
             );
-            this.loadCustomers();
+            // If admin and no BU selected yet, don't reload
+            if (!this.isAdmin || this.selectedBusinessUnitId) {
+              this.loadCustomers();
+            } else {
+              // Remove from local array for admin without BU selected
+              const deletedIds = new Set(ids);
+              this.customers = this.customers.filter(c => !deletedIds.has(c.id));
+              this.updatePaginatedCustomers();
+              this.selection.clear();
+            }
           }
         },
         error: (error: any) => {
           this.loading = false;
-          console.error('Error bulk deleting customers:', error);
+          console.error('❌ Error bulk deleting customers:', error);
           this.snackBar.open(
             error.error?.message || 'Gagal menghapus customers',
             'Tutup',
@@ -358,6 +390,25 @@ export class CustomersComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Pagination methods
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.updatePaginatedCustomers();
+  }
+
+  updatePaginatedCustomers(): void {
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedCustomers = this.customers.slice(startIndex, endIndex);
+    console.log('📄 Pagination updated:', {
+      pageIndex: this.pageIndex,
+      pageSize: this.pageSize,
+      total: this.customers.length,
+      showing: this.paginatedCustomers.length
+    });
   }
 }
 

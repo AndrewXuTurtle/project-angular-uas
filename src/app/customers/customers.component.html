@@ -69,7 +69,7 @@
         </div>
       } @else {
         <div class="table-container">
-          <table mat-table [dataSource]="customers" class="mat-elevation-z2">
+          <table mat-table [dataSource]="paginatedCustomers" class="mat-elevation-z2">
             <!-- Checkbox Column -->
             <ng-container matColumnDef="select">
               <th mat-header-cell *matHeaderCellDef>
@@ -142,6 +142,20 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
         </div>
+
+          <!-- Pagination -->
+          @if (customers.length > 0) {
+            <div class="pagination-container">
+              <mat-paginator 
+                [length]="customers.length"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="[10, 20, 30, 50]"
+                [pageIndex]="pageIndex"
+                (page)="onPageChange($event)"
+                showFirstLastButtons>
+              </mat-paginator>
+            </div>
+          }
       }
     </mat-card-content>
   </mat-card>
