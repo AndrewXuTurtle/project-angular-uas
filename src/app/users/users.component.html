@@ -52,27 +52,49 @@
   <div class="controls-bar">
     <mat-form-field class="search-field" appearance="outline">
       <mat-label>Search users</mat-label>
-      <input matInput [(ngModel)]="searchText" (ngModelChange)="applyFilter()" placeholder="Search by ID, username...">
+      <input matInput [(ngModel)]="searchText" placeholder="Search by ID, username...">
       <mat-icon matPrefix>search</mat-icon>
       @if (searchText) {
-        <button matSuffix mat-icon-button (click)="searchText = ''; applyFilter()">
+        <button matSuffix mat-icon-button (click)="searchText = ''">
           <mat-icon>close</mat-icon>
         </button>
       }
     </mat-form-field>
     
-    <div class="filter-group">
-      <mat-button-toggle-group [(value)]="filterLevel" (change)="applyFilter()" class="level-filter">
-        <mat-button-toggle value="all">All</mat-button-toggle>
-        <mat-button-toggle value="admin">Admin</mat-button-toggle>
-        <mat-button-toggle value="user">User</mat-button-toggle>
-      </mat-button-toggle-group>
-      
-      <mat-button-toggle-group [(value)]="filterActive" (change)="applyFilter()" class="status-filter">
-        <mat-button-toggle value="all">All Status</mat-button-toggle>
-        <mat-button-toggle value="active">Active</mat-button-toggle>
-        <mat-button-toggle value="inactive">Inactive</mat-button-toggle>
-      </mat-button-toggle-group>
+    <div class="filter-section">
+      <div class="filter-card">
+        <div class="filter-header">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>User Level</span>
+        </div>
+        <div class="filter-options">
+          <mat-checkbox [(ngModel)]="filterLevelAll" (change)="onLevelAllChange()">All Levels</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filterLevelAdmin" [disabled]="filterLevelAll">Admin</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filterLevelUser" [disabled]="filterLevelAll">User</mat-checkbox>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-header">
+          <mat-icon>toggle_on</mat-icon>
+          <span>Status</span>
+        </div>
+        <div class="filter-options">
+          <mat-checkbox [(ngModel)]="filterStatusAll" (change)="onStatusAllChange()">All Status</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filterStatusActive" [disabled]="filterStatusAll">Active</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filterStatusInactive" [disabled]="filterStatusAll">Inactive</mat-checkbox>
+        </div>
+      </div>
+
+      <button mat-raised-button color="primary" (click)="applyFilter()" class="apply-filter-btn">
+        <mat-icon>filter_alt</mat-icon>
+        Apply Filters
+      </button>
+
+      <button mat-button (click)="clearFilters()" class="clear-filter-btn">
+        <mat-icon>clear</mat-icon>
+        Clear
+      </button>
     </div>
   </div>
 

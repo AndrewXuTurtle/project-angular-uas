@@ -56,9 +56,14 @@ export class UsersComponent implements OnInit {
   isAdmin = false;
   searchText = '';
   
-  // Filters
-  filterLevel: 'all' | 'admin' | 'user' = 'all';
-  filterActive: 'all' | 'active' | 'inactive' = 'all';
+  // Checkbox Filters
+  filterLevelAll = true;
+  filterLevelAdmin = false;
+  filterLevelUser = false;
+  
+  filterStatusAll = true;
+  filterStatusActive = false;
+  filterStatusInactive = false;
   
   // For expanded card editing - keyed by user ID
   editingUser: { [key: number]: any } = {};
@@ -138,19 +143,72 @@ export class UsersComponent implements OnInit {
       );
     }
     
-    // Apply level filter
-    if (this.filterLevel !== 'all') {
-      filtered = filtered.filter(user => user.level === this.filterLevel);
+    // Apply level filter (checkbox-based)
+    if (!this.filterLevelAll) {
+      const levels: string[] = [];
+      if (this.filterLevelAdmin) levels.push('admin');
+      if (this.filterLevelUser) levels.push('user');
+      
+      if (levels.length > 0) {
+        filtered = filtered.filter(user => levels.includes(user.level));
+      } else {
+        // If no checkboxes selected, show nothing
+        filtered = [];
+      }
     }
     
-    // Apply active status filter
-    if (this.filterActive === 'active') {
-      filtered = filtered.filter(user => user.is_active);
-    } else if (this.filterActive === 'inactive') {
-      filtered = filtered.filter(user => !user.is_active);
+    // Apply status filter (checkbox-based)
+    if (!this.filterStatusAll) {
+      const shouldShowActive = this.filterStatusActive;
+      const shouldShowInactive = this.filterStatusInactive;
+      
+      if (shouldShowActive && !shouldShowInactive) {
+        filtered = filtered.filter(user => user.is_active);
+      } else if (!shouldShowActive && shouldShowInactive) {
+        filtered = filtered.filter(user => !user.is_active);
+      } else if (!shouldShowActive && !shouldShowInactive) {
+        // If no checkboxes selected, show nothing
+        filtered = [];
+      }
+      // If both checked, show all (no filter)
     }
     
     this.filteredUsers = filtered;
+    console.log('Filter applied:', {
+      total: this.users.length,
+      filtered: filtered.length,
+      levelAll: this.filterLevelAll,
+      levelAdmin: this.filterLevelAdmin,
+      levelUser: this.filterLevelUser,
+      statusAll: this.filterStatusAll,
+      statusActive: this.filterStatusActive,
+      statusInactive: this.filterStatusInactive
+    });
+  }
+
+  onLevelAllChange(): void {
+    if (this.filterLevelAll) {
+      this.filterLevelAdmin = false;
+      this.filterLevelUser = false;
+    }
+  }
+
+  onStatusAllChange(): void {
+    if (this.filterStatusAll) {
+      this.filterStatusActive = false;
+      this.filterStatusInactive = false;
+    }
+  }
+
+  clearFilters(): void {
+    this.searchText = '';
+    this.filterLevelAll = true;
+    this.filterLevelAdmin = false;
+    this.filterLevelUser = false;
+    this.filterStatusAll = true;
+    this.filterStatusActive = false;
+    this.filterStatusInactive = false;
+    this.applyFilter();
   }
 
   onPanelOpened(user: User): void {
