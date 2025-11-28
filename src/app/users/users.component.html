@@ -52,16 +52,28 @@
   <div class="controls-bar">
     <mat-form-field class="search-field" appearance="outline">
       <mat-label>Search users</mat-label>
-      <input matInput [(ngModel)]="searchText" placeholder="Search by ID, username...">
+      <input matInput [(ngModel)]="searchText" (input)="applyFilter()" placeholder="Search by ID, username...">
       <mat-icon matPrefix>search</mat-icon>
       @if (searchText) {
-        <button matSuffix mat-icon-button (click)="searchText = ''">
+        <button matSuffix mat-icon-button (click)="searchText = ''; applyFilter()">
           <mat-icon>close</mat-icon>
         </button>
       }
     </mat-form-field>
     
-    <div class="filter-section">
+    <!-- Filter Toggle Button -->
+    <button mat-stroked-button (click)="showFilters = !showFilters" class="filter-toggle-btn">
+      <mat-icon>{{ showFilters ? 'expand_less' : 'expand_more' }}</mat-icon>
+      {{ showFilters ? 'Hide' : 'Show' }} Filters
+      @if (!filterLevelAll || !filterStatusAll) {
+        <span class="filter-active-badge">•</span>
+      }
+    </button>
+  </div>
+    
+  <!-- Collapsible Filter Section -->
+  @if (showFilters) {
+    <div class="filter-section" [@slideDown]>
       <div class="filter-card">
         <div class="filter-header">
           <mat-icon>admin_panel_settings</mat-icon>
@@ -96,7 +108,7 @@
         Clear
       </button>
     </div>
-  </div>
+  }
 
   <!-- Loading Indicator -->
   @if (loading) {
@@ -109,7 +121,7 @@
   <!-- User Cards Grid -->
   @if (!loading) {
     <div class="users-grid">
-      @for (user of filteredUsers; track user.id) {
+      @for (user of paginatedUsers; track user.id) {
         <mat-card class="user-card">
           <!-- Card Header -->
           <div class="card-header">
@@ -142,15 +154,36 @@
         </mat-card>
       }
 
-      @if (filteredUsers.length === 0) {
-        <div class="no-users-message">
-          <mat-icon>search_off</mat-icon>
-          <h3>No users found</h3>
-          <p>Try adjusting your search or filters</p>
+      @if (filteredUsers.length === 0 && !loading) {
+        <div class="empty-state">
+          <div class="empty-state-content">
+            <mat-icon class="empty-icon">{{ searchText || !filterLevelAll || !filterStatusAll ? 'search_off' : 'people_outline' }}</mat-icon>
+            <h3>{{ searchText || !filterLevelAll || !filterStatusAll ? 'No users found' : 'No users yet' }}</h3>
+            <p>{{ searchText || !filterLevelAll || !filterStatusAll ? 'Try adjusting your search or filters' : 'Get started by adding your first user' }}</p>
+            @if (!searchText && filterLevelAll && filterStatusAll) {
+              <button mat-raised-button color="primary" (click)="openCreateDialog()" class="empty-action-btn">
+                <mat-icon>person_add</mat-icon>
+                Add First User
+              </button>
+            }
+          </div>
         </div>
       }
     </div>
   }
+    <!-- Pagination -->
+    @if (filteredUsers.length > 0) {
+      <div class="pagination-container">
+        <mat-paginator 
+          [length]="filteredUsers.length"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 20, 30, 50]"
+          [pageIndex]="pageIndex"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    }
 
   <!-- Edit Panel Overlay -->
   @if (expandedUserId && editingUser[expandedUserId]) {

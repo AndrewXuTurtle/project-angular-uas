@@ -16,6 +16,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
 import { BusinessUnitService } from '../services/business-unit.service';
@@ -44,17 +46,33 @@ import { UserFormDialogComponent } from './user-form-dialog.component';
     MatInputModule,
     MatProgressSpinnerModule,
     MatButtonToggleModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatPaginatorModule
   ],
   templateUrl: './users.component.html',
-  styleUrl: './users.component.scss'
+  styleUrl: './users.component.scss',
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: '0', opacity: 0, overflow: 'hidden' }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ height: '0', opacity: 0, overflow: 'hidden' }))
+      ])
+    ])
+  ]
 })
 export class UsersComponent implements OnInit {
   users: User[] = [];
   filteredUsers: User[] = [];
+  paginatedUsers: User[] = [];
   loading = false;
   isAdmin = false;
   searchText = '';
+  
+  // Filter visibility
+  showFilters = false;
   
   // Checkbox Filters
   filterLevelAll = true;
@@ -64,6 +82,10 @@ export class UsersComponent implements OnInit {
   filterStatusAll = true;
   filterStatusActive = false;
   filterStatusInactive = false;
+  
+  // Pagination
+  pageSize = 10;
+  pageIndex = 0;
   
   // For expanded card editing - keyed by user ID
   editingUser: { [key: number]: any } = {};
@@ -174,6 +196,9 @@ export class UsersComponent implements OnInit {
     }
     
     this.filteredUsers = filtered;
+    this.pageIndex = 0; // Reset to first page when filtering
+    this.updatePaginatedUsers();
+    
     console.log('Filter applied:', {
       total: this.users.length,
       filtered: filtered.length,
@@ -317,6 +342,7 @@ export class UsersComponent implements OnInit {
       next: (response) => {
         console.log('✅ User update response:', response);
         this.showSnackBar('User updated successfully', 'success');
+        this.closeEditPanel(); // Auto-close after successful save
         this.loadUsers();
       },
       error: (error) => {
@@ -419,5 +445,18 @@ export class UsersComponent implements OnInit {
 
   getSelectedMenuCount(userId: number): number {
     return this.editingUser[userId]?.selectedMenus?.length || 0;
+  }
+
+  // Pagination methods
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.updatePaginatedUsers();
+  }
+
+  updatePaginatedUsers(): void {
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedUsers = this.filteredUsers.slice(startIndex, endIndex);
   }
 }
