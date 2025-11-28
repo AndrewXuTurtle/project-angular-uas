@@ -628,6 +628,118 @@
         }
       }
 
+      // Toggle Grid for Slide Toggles
+      .toggle-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+
+        .toggle-item {
+          background: rgba(255, 255, 255, 0.6);
+          border-radius: 12px;
+          padding: 12px 16px;
+          border: 1.5px solid rgba(102, 126, 234, 0.12);
+          transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(102, 126, 234, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+          }
+
+          mat-slide-toggle {
+            width: 100%;
+
+            ::ng-deep {
+              .mdc-switch {
+                margin-right: 12px;
+              }
+
+              .mdc-switch__track {
+                height: 20px;
+                width: 40px;
+                border-radius: 10px;
+
+                &::before {
+                  background: #cbd5e0;
+                }
+
+                &::after {
+                  background: #cbd5e0;
+                }
+              }
+
+              .mdc-switch__handle {
+                height: 16px;
+                width: 16px;
+
+                &::after {
+                  height: 16px;
+                  width: 16px;
+                }
+              }
+
+              .mdc-switch--selected .mdc-switch__track::after {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+              }
+
+              .mdc-switch--selected .mdc-switch__handle::after {
+                background: white;
+              }
+
+              .mdc-switch--selected .mdc-switch__icon {
+                fill: white;
+              }
+
+              .mdc-label {
+                margin-left: 8px;
+                flex: 1;
+              }
+            }
+
+            .toggle-label {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              font-size: 14px;
+              font-weight: 600;
+              color: #2d3748;
+
+              mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                color: #667eea;
+
+                &.menu-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+              }
+            }
+          }
+        }
+
+        .no-data {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 40px 20px;
+          color: #a0aec0;
+          font-style: italic;
+
+          mat-icon {
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+            color: #cbd5e0;
+            margin-bottom: 12px;
+          }
+        }
+      }
+
+      // Keep checkbox-grid for backward compatibility (if needed)
       .checkbox-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -777,8 +889,14 @@
     .panel-content {
       padding: 20px;
 
-      .edit-section .checkbox-grid {
-        grid-template-columns: 1fr;
+      .edit-section {
+        .checkbox-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .toggle-grid {
+          grid-template-columns: 1fr;
+        }
       }
     }
   }

@@ -191,14 +191,19 @@
               <h3>Business Units Access</h3>
               <span class="count-badge">{{ getSelectedBUCount(expandedUserId) }} selected</span>
             </div>
-            <div class="checkbox-grid">
+            <div class="toggle-grid">
               @for (bu of businessUnits; track bu.id) {
-                <mat-checkbox 
-                  [checked]="isBusinessUnitSelected(expandedUserId, bu.id)"
-                  (change)="toggleBusinessUnit(expandedUserId, bu.id)"
-                  color="primary">
-                  {{ bu.business_unit }}
-                </mat-checkbox>
+                <div class="toggle-item">
+                  <mat-slide-toggle
+                    [checked]="isBusinessUnitSelected(expandedUserId, bu.id)"
+                    (change)="toggleBusinessUnit(expandedUserId, bu.id)"
+                    color="primary">
+                    <span class="toggle-label">
+                      <mat-icon>business</mat-icon>
+                      {{ bu.business_unit }}
+                    </span>
+                  </mat-slide-toggle>
+                </div>
               }
               @if (businessUnits.length === 0) {
                 <p class="no-data">
@@ -216,15 +221,19 @@
               <h3>Menu Access</h3>
               <span class="count-badge">{{ getSelectedMenuCount(expandedUserId) }} selected</span>
             </div>
-            <div class="checkbox-grid">
+            <div class="toggle-grid">
               @for (menu of allMenus; track menu.id) {
-                <mat-checkbox 
-                  [checked]="isMenuSelected(expandedUserId, menu.id)"
-                  (change)="toggleMenu(expandedUserId, menu.id)"
-                  color="primary">
-                  <mat-icon class="menu-icon">{{ menu.icon || 'label' }}</mat-icon>
-                  {{ menu.nama_menu }}
-                </mat-checkbox>
+                <div class="toggle-item">
+                  <mat-slide-toggle
+                    [checked]="isMenuSelected(expandedUserId, menu.id)"
+                    (change)="toggleMenu(expandedUserId, menu.id)"
+                    color="primary">
+                    <span class="toggle-label">
+                      <mat-icon class="menu-icon">{{ menu.icon || 'label' }}</mat-icon>
+                      {{ menu.nama_menu }}
+                    </span>
+                  </mat-slide-toggle>
+                </div>
               }
               @if (allMenus.length === 0) {
                 <p class="no-data">

@@ -90,7 +90,7 @@ export class UsersComponent implements OnInit {
       next: (users) => {
         console.log('Users loaded:', users);
         this.users = users;
-        this.filteredUsers = [...users];
+        this.applyFilter();
         this.loading = false;
       },
       error: (error) => {
