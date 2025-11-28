@@ -252,36 +252,21 @@ export class UsersComponent implements OnInit {
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(UserFormDialogComponent, {
-      width: '600px',
-      data: { user: null, isEdit: false }
+      width: '500px'
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        // result sudah hanya berisi: username, password, level, is_active
         this.userService.createUser(result).subscribe({
           next: () => {
             this.loadUsers();
-            this.showSnackBar('User created successfully', 'success');
+            this.showSnackBar('User created successfully! Assign Business Units and Menus from the dashboard.', 'success');
           },
           error: (error) => {
             this.showSnackBar('Error creating user: ' + error.message, 'error');
           }
         });
-      }
-    });
-  }
-
-  openEditDialog(user: User): void {
-    const dialogRef = this.dialog.open(UserFormDialogComponent, {
-      width: '700px',
-      data: { user: {...user}, isEdit: true }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Update is already handled inside dialog component
-        // Just reload the list
-        this.loadUsers();
       }
     });
   }
