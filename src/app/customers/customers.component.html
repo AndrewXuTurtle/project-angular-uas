@@ -195,6 +195,20 @@
             showFirstLastButtons>
           </mat-paginator>
         </div>
+
+          <!-- Pagination -->
+          @if (customers.length > 0) {
+            <div class="pagination-container">
+              <mat-paginator 
+                [length]="customers.length"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="[10, 20, 30, 50]"
+                [pageIndex]="pageIndex"
+                (page)="onPageChange($event)"
+                showFirstLastButtons>
+              </mat-paginator>
+            </div>
+          }
       }
     </mat-card-content>
   </mat-card>
